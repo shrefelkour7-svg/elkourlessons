@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محاكاة المخطط الانسيابي - احتساب قيمة Y مع أسهم التوجيه</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-dark: #1e293b;
+            --btn-orange: #f59e0b;
+            --btn-orange-hover: #d97706;
+            --accent-blue: #0284c7;
+            --text-light: #f8fafc;
+            --border-color: #334155;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            margin: 0;
+            padding: 10px;
+            direction: rtl;
+        }
+
+        .header-card {
+            background: var(--card-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 10px;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .header-title {
+            color: #fbbf24;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .header-sub {
+            color: #94a3b8;
+            font-size: 0.8rem;
+            margin-top: 2px;
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .btn-next {
+            flex: 2;
+            background: var(--btn-orange);
+            color: #0f172a;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.05rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+        .btn-next:hover { background: var(--btn-orange-hover); color: white; }
+
+        .btn-reset {
+            flex: 1;
+            background: #334155;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+
+        .step-badge {
+            background: var(--card-dark);
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: #38bdf8;
+            text-align: center;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .card {
+            background: var(--card-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 10px;
+            margin-bottom: 8px;
+        }
+
+        .card-title {
+            color: #fbbf24;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .flow-svg {
+            width: 100%;
+            max-width: 320px;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .node-shape {
+            transition: all 0.3s ease;
+        }
+
+        .node-shape.active {
+            fill: #fef08a !important;
+            stroke: #eab308 !important;
+            stroke-width: 4px;
+            filter: drop-shadow(0 0 10px #f59e0b);
+        }
+
+        .board-content {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: #e2e8f0;
+            min-height: 80px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .memory-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .memory-table th, .memory-table td {
+            border: 1px solid var(--border-color);
+            padding: 6px;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+        .memory-table th {
+            background: #0f172a;
+            color: #38bdf8;
+        }
+
+        /* صندوق حوار الإدخال المنبثق */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+
+        .modal-box-input {
+            background: #f59e0b;
+            border: 2px solid #fbbf24;
+            border-radius: 16px;
+            padding: 20px;
+            width: 90%;
+            max-width: 340px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+        }
+
+        .modal-field {
+            flex: 1;
+            margin-bottom: 10px;
+        }
+
+        .modal-field label {
+            display: block;
+            font-size: 0.85rem;
+            color: #0f172a;
+            font-weight: bold;
+            margin-bottom: 4px;
+            text-align: right;
+        }
+
+        .modal-field input {
+            width: 100%;
+            padding: 10px;
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            color: #0f172a;
+            text-align: center;
+            font-size: 1.1rem;
+            box-sizing: border-box;
+            font-weight: bold;
+        }
+
+        .modal-btn {
+            background: #0f172a;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.05rem;
+            margin-top: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .modal-btn:hover { background: #1e293b; }
+
+        /* نافذة صندوق حوار الأسئلة التفاعلية (Quiz Modal) */
+        .quiz-modal-box {
+            background: #1e293b;
+            border: 2px solid var(--accent-blue);
+            border-radius: 16px;
+            padding: 20px;
+            width: 90%;
+            max-width: 360px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+        }
+
+        .quiz-option-btn {
+            width: 100%;
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            color: #f8fafc;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .quiz-option-btn:hover { background: #334155; border-color: var(--accent-blue); }
+
+        .q-btn {
+            width: 100%;
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            color: #e2e8f0;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: right;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+        .q-btn:hover { background: #1e293b; }
+    </style>
+</head>
+<body>
+
+    <!-- صندوق حوار الإدخال المنبثق -->
+    <div class="modal-overlay" id="inputModal">
+        <div class="modal-box-input">
+            <div style="color:#0f172a; font-weight:bold; font-size:1.1rem; margin-bottom:12px;">أدخل قيمة المتغير (X):</div>
+            
+            <div class="modal-field">
+                <label>X</label>
+                <input type="number" id="inX" value="0">
+            </div>
+
+            <button class="modal-btn" onclick="confirmInput()">تأكيد المدخلات</button>
+        </div>
+    </div>
+
+    <!-- صندوق حوار اختبار التتبع والتدريب (Quiz Modal) -->
+    <div class="modal-overlay" id="quizModal">
+        <div class="quiz-modal-box">
+            <div id="quizTitle" style="color:#fbbf24; font-weight:bold; font-size:1rem; margin-bottom:10px;">🎯 اختبار التتبع الشرطي لـ Y</div>
+            <div id="quizQuestionText" style="font-size:0.9rem; color:#e2e8f0; margin-bottom:15px; line-height:1.5;"></div>
+            
+            <div id="quizOptionsContainer"></div>
+
+            <div id="quizFeedback" style="font-size:0.9rem; font-weight:bold; margin-top:12px; min-height:24px;"></div>
+
+            <div style="display:flex; gap:8px; margin-top:15px;">
+                <button id="quizRepeatBtn" style="flex:1; background:#334155; color:white; border:none; padding:8px; border-radius:6px; cursor:pointer; font-weight:bold; display:none;" onclick="loadQuiz(currentQuizType)">سؤال جديد 🔄</button>
+                <button style="flex:1; background:var(--accent-blue); color:white; border:none; padding:8px; border-radius:6px; cursor:pointer; font-weight:bold;" onclick="closeQuizModal()">إغلاق الصندوق ✕</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- الهيدر -->
+    <header class="header-card">
+        <h1 class="header-title">🏫 مدرسة اليرموك للتعليم الأساسي</h1>
+        <div class="header-sub">مدرس المادة: الشريف علي الكور | محاكاة احتساب Y مع أسهم التوجيه المباشرة</div>
+    </header>
+
+    <!-- أزرار التحكم والعداد -->
+    <div class="controls-row">
+        <button class="btn-next" onclick="nextStep()">الخطوة التالية ➔</button>
+        <button class="btn-reset" onclick="resetAll()">إعادة ↻</button>
+    </div>
+    <div class="step-badge" id="stepCounter">الخطوة: 0</div>
+
+    <!-- المخطط الانسيابي المصمم مع أسهم توجيه واضحة وخط مباشر لشكلي الإخراج -->
+    <div class="card" style="text-align: center;">
+        <div class="card-title">📐 المخطط الانسيابي المحسّن بأسهم التوجيه والإخراج المباشر</div>
+        <svg class="flow-svg" viewBox="0 0 310 460">
+            <defs>
+                <!-- تعريف شكل سهم التوجيه (Arrowhead marker) -->
+                <marker id="arrow-cyan" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#38bdf8"/>
+                </marker>
+                <marker id="arrow-red" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444"/>
+                </marker>
+                <marker id="arrow-slate" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                </marker>
+            </defs>
+
+            <!-- Start -->
+            <g id="node-start">
+                <rect x="105" y="10" width="100" height="30" rx="15" fill="#10b981" class="node-shape"/>
+                <text x="155" y="29" text-anchor="middle" fill="white" font-size="11" font-weight="bold">بداية</text>
+            </g>
+            <line x1="155" y1="40" x2="155" y2="62" stroke="#64748b" stroke-width="2" marker-end="url(#arrow-slate)"/>
+
+            <!-- Input X -->
+            <g id="node-input">
+                <polygon points="90,65 220,65 200,98 70,98" fill="#8b5cf6" class="node-shape"/>
+                <text x="145" y="85" text-anchor="middle" fill="white" font-size="10" font-weight="bold">إدخال X</text>
+            </g>
+            <line x1="145" y1="98" x2="145" y2="122" stroke="#64748b" stroke-width="2" marker-end="url(#arrow-slate)"/>
+
+            <!-- Decision 1: X == 0 ? -->
+            <g id="node-dec1">
+                <polygon points="145,125 210,155 145,185 80,155" fill="#f59e0b" class="node-shape"/>
+                <text x="145" y="158" text-anchor="middle" fill="#0f172a" font-size="10" font-weight="bold">X == 0 ?</text>
+            </g>
+
+            <!-- Branch 1 Yes (Right -> Directly into Output Y, X shape with Arrow!) -->
+            <path d="M 210,155 L 280,155 L 280,360 L 210,360" fill="none" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow-cyan)"/>
+            <text x="230" y="147" fill="#38bdf8" font-size="9" font-weight="bold">نعم (Y=0)</text>
+
+            <!-- Branch 1 No (Down to Decision 2: X > 5 ?) -->
+            <line x1="145" y1="185" x2="145" y2="212" stroke="#ef4444" stroke-width="2" marker-end="url(#arrow-red)"/>
+            <text x="153" y="202" fill="#ef4444" font-size="9" font-weight="bold">لا</text>
+
+            <!-- Decision 2: X > 5 ? -->
+            <g id="node-dec2">
+                <polygon points="145,215 210,245 145,275 80,245" fill="#f59e0b" class="node-shape"/>
+                <text x="145" y="248" text-anchor="middle" fill="#0f172a" font-size="10" font-weight="bold">X > 5 ?</text>
+            </g>
+
+            <!-- Branch 2 Yes (Right -> Y = X + 5) -->
+            <path d="M 210,245 L 240,245 L 240,292" fill="none" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow-cyan)"/>
+            <text x="220" y="237" fill="#38bdf8" font-size="9" font-weight="bold">نعم</text>
+            <g id="node-proc1">
+                <rect x="200" y="295" width="80" height="32" fill="#0284c7" class="node-shape"/>
+                <text x="240" y="316" text-anchor="middle" fill="white" font-size="9" font-weight="bold">Y = X + 5</text>
+            </g>
+
+            <!-- Branch 2 No (Left -> Y = X - 5) -->
+            <path d="M 80,245 L 50,245 L 50,292" fill="none" stroke="#ef4444" stroke-width="2" marker-end="url(#arrow-red)"/>
+            <text x="55" y="237" fill="#ef4444" font-size="9" font-weight="bold">لا</text>
+            <g id="node-proc2">
+                <rect x="10" y="295" width="80" height="32" fill="#0284c7" class="node-shape"/>
+                <text x="50" y="316" text-anchor="middle" fill="white" font-size="9" font-weight="bold">Y = X - 5</text>
+            </g>
+
+            <!-- Merge paths from calculations into Output Shape -->
+            <path d="M 240,327 L 240,345 L 180,345" fill="none" stroke="#64748b" stroke-width="2"/>
+            <path d="M 50,327 L 50,345 L 110,345" fill="none" stroke="#64748b" stroke-width="2"/>
+            <line x1="145" y1="345" x2="145" y2="352" stroke="#64748b" stroke-width="2" marker-end="url(#arrow-slate)"/>
+
+            <!-- Output Y & X (Direct entry from X=0 on the right side!) -->
+            <g id="node-output">
+                <polygon points="70,350 220,350 200,385 50,385" fill="#0284c7" class="node-shape"/>
+                <text x="135" y="372" text-anchor="middle" fill="white" font-size="10" font-weight="bold">طباعة Y , X</text>
+            </g>
+            <line x1="135" y1="385" x2="135" y2="407" stroke="#64748b" stroke-width="2" marker-end="url(#arrow-slate)"/>
+
+            <!-- End -->
+            <g id="node-end">
+                <rect x="85" y="410" width="100" height="25" rx="12" fill="#ef4444" class="node-shape"/>
+                <text x="135" y="426" text-anchor="middle" fill="white" font-size="10" font-weight="bold">النهاية</text>
+            </g>
+        </svg>
+    </div>
+
+    <!-- سبورة الإيضاح والتتبع التفصيلية -->
+    <div class="card">
+        <div class="card-title">📜 سبورة الخوارزمية والتتبع التفصيلي (Whiteboard)</div>
+        <div class="board-content" id="boardText">
+            > جاهز لبدء الشرح والتنفيذ... اضغط على "الخطوة التالية".
+        </div>
+    </div>
+
+    <!-- الذاكرة الحية -->
+    <div class="card">
+        <div class="card-title">💾 الذاكرة الحية (RAM)</div>
+        <table class="memory-table">
+            <thead>
+                <tr>
+                    <th>المتغير</th>
+                    <th>القيمة المخزنة</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>X</td>
+                    <td id="memX" style="color:#fbbf24; font-weight:bold;">-</td>
+                </tr>
+                <tr>
+                    <td>Y</td>
+                    <td id="memY" style="color:#10b981; font-weight:bold;">-</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- أزرار تدريبات واختبارات التتبع الحوارية المنبثقة -->
+    <div class="card">
+        <div class="card-title">❓ تدريبات واختبارات التتبع الشرطي لـ Y</div>
+        <button class="q-btn" onclick="openQuiz(1)">📌 تدريب 1: تتبع قيمة Y عند إدخال X = 0</button>
+        <button class="q-btn" onclick="openQuiz(2)">📌 تدريب 2: تتبع قيمة Y عند إدخال X أكبر من 5</button>
+        <button class="q-btn" onclick="openQuiz(3)">📌 تدريب 3: تتبع قيمة Y عند إدخال X أقل من أو تساوي 5</button>
+    </div>
+
+<script>
+    let step = 0;
+    let valX = 0;
+    let valY = 0;
+    let currentQuizType = 1;
+    let pathChoice = ''; // 'zero', 'greater', 'less'
+
+    function resetAll() {
+        step = 0;
+        valX = 0;
+        valY = 0;
+        pathChoice = '';
+        document.getElementById('stepCounter').innerText = "الخطوة: 0";
+        document.getElementById('boardText').innerHTML = "> جاهز لبدء الشرح والتنفيذ... اضغط على 'الخطوة التالية'.";
+        document.getElementById('memX').innerText = "-";
+        document.getElementById('memY').innerText = "-";
+        document.getElementById('inputModal').style.display = 'none';
+        document.getElementById('quizModal').style.display = 'none';
+        clearActive();
+    }
+
+    function clearActive() {
+        document.querySelectorAll('.node-shape').forEach(el => el.classList.remove('active'));
+    }
+
+    function speak(text) {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            let msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'ar-SA';
+            window.speechSynthesis.speak(msg);
+        }
+    }
+
+    function nextStep() {
+        let board = document.getElementById('boardText');
+
+        if (step === 0) {
+            step = 1;
+            clearActive();
+            document.getElementById('node-start').querySelector('.node-shape').classList.add('active');
+            document.getElementById('stepCounter').innerText = "الخطوة: 1 (البداية)";
+            let log = "▪ البداية : تجهيز الخوارزمية واستعداد المعالج.<br>";
+            board.innerHTML = log;
+            speak("البداية، تجهيز الخوارزمية.");
+        }
+        else if (step === 1) {
+            step = 2;
+            clearActive();
+            document.getElementById('node-input').querySelector('.node-shape').classList.add('active');
+            document.getElementById('stepCounter').innerText = "الخطوة: 2 (إدخال X)";
+            document.getElementById('inputModal').style.display = 'flex';
+            let log = "▪ إدخال البيانات : ظهر صندوق الحوار لاستقبال قيمة المتغير X.<br>";
+            board.innerHTML += "<br>" + log;
+            speak("خطوة الإدخال، يرجى إدخال قيمة إكس.");
+        }
+        else if (step === 2) {
+            if (document.getElementById('inputModal').style.display === 'flex') {
+                alert("يرجى إدخال وتأكيد قيمة X أولاً!");
+                return;
+            }
+            // فحص الشرط الأول: X == 0 ?
+            clearActive();
+            document.getElementById('node-dec1').querySelector('.node-shape').classList.add('active');
+            document.getElementById('stepCounter').innerText = "الخطوة: 3 (فحص الشرط الأول X == 0)";
+            
+            let log = "▪ فحص الشرط الأول (X == 0) : القيمة المدخلة حالياً هي X = " + valX + ".<br>";
+            if (valX === 0) {
+                pathChoice = 'zero';
+                valY = 0;
+                document.getElementById('memY').innerText = valY;
+                log += "&nbsp;&nbsp; ✔ الشرط تحقق (نعم X = 0): التوجه بالسهم المباشر مباشرة إلى شكل إخراج وطباعة (Y, X)!<br>";
+                board.innerHTML += "<br>" + log;
+                speak("إكس تساوي صفراً، التوجه بالسهم المباشر إلى شكل الطباعة.");
+                step = 3.5; // التوجه المباشر لشكلي المخرجات
+            } else {
+                log += "&nbsp;&nbsp; ❌ الشرط لم يتحقق (لا X ≠ 0): الانتقال بالسهم الأسفل لفحص الشرط الثاني (X > 5).<br>";
+                board.innerHTML += "<br>" + log;
+                speak("إكس لا تساوي صفراً، الانتقال لفحص الشرط الثاني.");
+                step = 2.5;
+            }
+        }
+        else if (step === 2.5) {
+            // فحص الشرط الثاني: X > 5 ?
+            clearActive();
+            document.getElementById('node-dec2').querySelector('.node-shape').classList.add('active');
+            document.getElementById('stepCounter').innerText = "الخطوة: 3.5 (فحص الشرط الثاني X > 5)";
+            
+            let log = "▪ فحص الشرط الثاني (X > 5) : القيمة المخزنة هي X = " + valX + ".<br>";
+            if (valX > 5) {
+                pathChoice = 'greater';
+                log += "&nbsp;&nbsp; ✔ الشرط تحقق (نعم X > 5): التوجه بسهم المعالجة لتنفيذ المعادلة Y = X + 5.<br>";
+                board.innerHTML += "<br>" + log;
+                speak("إكس أكبر من خمسة، التوجه لمعادلة الجمع.");
+            } else {
+                pathChoice = 'less';
+                log += "&nbsp;&nbsp; ❌ الشرط لم يتحقق (لا X <= 5): التوجه بسهم المعالجة لتنفيذ المعادلة Y = X - 5.<br>";
+                board.innerHTML += "<br>" + log;
+                speak("إكس أقل من أو تساوي خمسة، التوجه لمعادلة الطرح.");
+            }
+            step = 3;
+        }
+        else if (step === 3) {
+            clearActive();
+            if (pathChoice === 'greater') {
+                document.getElementById('node-proc1').querySelector('.node-shape').classList.add('active');
+                valY = valX + 5;
+                document.getElementById('stepCounter').innerText = "الخطوة: 4 (المعالجة: Y = X + 5)";
+                let log = "▪ المعالجة (الاحتمال الثاني) :<br>&nbsp;&nbsp; - حساب Y = " + valX + " + 5 = " + valY + "<br>";
+                board.innerHTML += "<br>" + log;
+                speak("حساب قيمة واي تساوي إكس زائد خمسة.");
+            }
+            else {
+                document.getElementById('node-proc2').querySelector('.node-shape').classList.add('active');
+                valY = valX - 5;
+                document.getElementById('stepCounter').innerText = "الخطوة: 4 (المعالجة: Y = X - 5)";
+                let log = "▪ المعالجة (الاحتمال الثالث) :<br>&nbsp;&nbsp; - حساب Y = " + valX + " - 5 = " + valY + "<br>";
+                board.innerHTML += "<br>" + log;
+                speak("حساب قيمة واي تساوي إكس ناقص خمسة.");
+            }
+            document.getElementById('memY').innerText = valY;
+            step = 4;
+        }
+        else if (step === 3.5) {
+            step = 4;
+            nextStep();
+            return;
+        }
+        else if (step === 4) {
+            step = 5;
+            clearActive();
+            document.getElementById('node-output').querySelector('.node-shape').classList.add('active');
+            document.getElementById('stepCounter').innerText = "الخطوة: 5 (الطباعة والمخرجات)";
+            let log = "▪ المخرجات والشاشة :<br>&nbsp;&nbsp; - طباعة واظهار القيم مباشرة على الشاشة: Y = " + valY + " و X = " + valX + "<br>";
+            board.innerHTML += "<br>" + log;
+            speak("طباعة قيمة واي وإكس على الشاشة.");
+        }
+        else if (step === 5) {
+            step = 6;
+            clearActive();
+            document.getElementById('node-end').querySelector('.node-shape').classList.add('active');
+            document.getElementById('stepCounter').innerText = "الخطوة: 6 (النهاية)";
+            let log = "▪ اكتمل التنفيذ بنجاح واستقرار الخوارزمية عند النهاية.<br>";
+            board.innerHTML += "<br>" + log;
+            speak("اكتمل التنفيذ بنجاح.");
+        }
+        else {
+            let log = "▪ التنفيذ مكتمل بالفعل. اضغط على زر 'إعادة ↻' لبدء محاكاة جديدة.<br>";
+            board.innerHTML += "<br>" + log;
+            speak("التنفيذ مكتمل.");
+        }
+    }
+
+    function confirmInput() {
+        valX = parseFloat(document.getElementById('inX').value);
+        if (isNaN(valX)) valX = 0;
+        
+        document.getElementById('memX').innerText = valX;
+        document.getElementById('inputModal').style.display = 'none';
+
+        let board = document.getElementById('boardText');
+        let log = "&nbsp;&nbsp; ➔ تم إدخال القيمة: X = " + valX + " وتخزينها في الذاكرة الحية.<br>";
+        board.innerHTML += log;
+
+        speak("تم تأكيد قيمة إكس.");
+        step = 2;
+        nextStep();
+    }
+
+    function openQuiz(type) {
+        currentQuizType = type;
+        loadQuiz(type);
+        document.getElementById('quizModal').style.display = 'flex';
+    }
+
+    function closeQuizModal() {
+        document.getElementById('quizModal').style.display = 'none';
+    }
+
+    function loadQuiz(type) {
+        document.getElementById('quizFeedback').innerText = "";
+        document.getElementById('quizRepeatBtn').style.display = "none";
+        let qText = document.getElementById('quizQuestionText');
+        let optContainer = document.getElementById('quizOptionsContainer');
+        optContainer.innerHTML = "";
+
+        if (type === 1) {
+            qText.innerHTML = "إذا تم إدخال القيمة <b>X = 0</b>، فما هي قيمة المتغير Y الناتجة بناءً على الخوارزمية؟";
+            let choices = [0, 5, -5].sort(() => Math.random() - 0.5);
+
+            choices.forEach(val => {
+                let btn = document.createElement('button');
+                btn.className = 'quiz-option-btn';
+                btn.innerText = "Y = " + val;
+                btn.onclick = function() {
+                    let fb = document.getElementById('quizFeedback');
+                    if (val === 0) {
+                        fb.style.color = "#10b981";
+                        fb.innerText = "إجابة صحيحة وممتازة! 🎯 عندما تكون X = 0 يتجه السهم المباشر للطباعة وتكون Y = 0.";
+                        speak("إجابة صحيحة وممتازة");
+                    } else {
+                        fb.style.color = "#ef4444";
+                        fb.innerText = "إجابة خاطئة. راجع الشرط الأول والسهم المباشر للإخراج.";
+                        speak("إجابة خاطئة");
+                    }
+                    document.getElementById('quizRepeatBtn').style.display = "block";
+                };
+                optContainer.appendChild(btn);
+            });
+        }
+        else if (type === 2) {
+            let randX = [6, 8, 10, 12][Math.floor(Math.random() * 4)];
+            let correctY = randX + 5;
+            let wrong1 = randX - 5;
+            let wrong2 = 0;
+
+            let choices = [correctY, wrong1, wrong2].sort(() => Math.random() - 0.5);
+
+            qText.innerHTML = "إذا أدخل الطالب القيمة <b>X = " + randX + "</b> (أكبر من 5)، فما هي قيمة Y وطبيعة المعادلة المطبقة؟";
+
+            choices.forEach(val => {
+                let btn = document.createElement('button');
+                btn.className = 'quiz-option-btn';
+                btn.innerText = "Y = " + val;
+                btn.onclick = function() {
+                    let fb = document.getElementById('quizFeedback');
+                    if (val === correctY) {
+                        fb.style.color = "#10b981";
+                        fb.innerText = "تحليل ممتازة جداً! 👏 تم تطبيق المعادلة Y = X + 5 وتساوي " + correctY + ".";
+                        speak("إجابة صحيحة وممتازة");
+                    } else {
+                        fb.style.color = "#ef4444";
+                        fb.innerText = "إجابة خاطئة. لأن X أكبر من 5 يجب تطبيق المعادلة Y = X + 5.";
+                        speak("إجابة خاطئة");
+                    }
+                    document.getElementById('quizRepeatBtn').style.display = "block";
+                };
+                optContainer.appendChild(btn);
+            });
+        }
+        else if (type === 3) {
+            let randX = [2, 3, 4, 5, -2][Math.floor(Math.random() * 5)];
+            let correctY = randX - 5;
+            let wrong1 = randX + 5;
+            let wrong2 = 0;
+
+            let choices = [correctY, wrong1, wrong2].sort(() => Math.random() - 0.5);
+
+            qText.innerHTML = "إذا أدخل الطالب القيمة <b>X = " + randX + "</b> (أقل من أو تساوي 5 ولا تساوي الصفر)، فما هي قيمة Y الناتجة؟";
+
+            choices.forEach(val => {
+                let btn = document.createElement('button');
+                btn.className = 'quiz-option-btn';
+                btn.innerText = "Y = " + val;
+                btn.onclick = function() {
+                    let fb = document.getElementById('quizFeedback');
+                    if (val === correctY) {
+                        fb.style.color = "#10b981";
+                        fb.innerText = "رائع جداً! 🌟 تم تطبيق المعادلة Y = X - 5 وتساوي " + correctY + ".";
+                        speak("إجابة صحيحة ورائعة");
+                    } else {
+                        fb.style.color = "#ef4444";
+                        fb.innerText = "إجابة خاطئة. في هذه الحالة ينطبق الشرط الثالث وتكون Y = X - 5.";
+                        speak("إجابة خاطئة");
+                    }
+                    document.getElementById('quizRepeatBtn').style.display = "block";
+                };
+                optContainer.appendChild(btn);
+            });
+        }
+    }
+</script>
+
+</body>
+</html>
