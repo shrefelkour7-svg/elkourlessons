@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق max_abc - المطابق للصورة الورقية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600;800&display=swap');
+        body { font-family: 'Tajawal', sans-serif; }
+        .node-active { stroke: #fbbf24 !important; stroke-width: 4px !important; filter: drop-shadow(0 0 12px rgba(251, 191, 36, 0.9)); }
+        .pulse-input { animation: pulse-border 1.5s infinite; }
+        @keyframes pulse-border {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+            70% { transform: scale(1.02); box-shadow: 0 0 0 15px rgba(245, 158, 11, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col p-2">
+
+    <!-- شريط المدرسة والمدرس -->
+    <header class="bg-slate-800 border border-slate-700 p-2.5 rounded-xl mb-2 shadow-md">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-school text-amber-400 text-lg"></i>
+                <div>
+                    <h1 class="text-xs font-bold text-white">مدرسة اليرموك للتعليم الأساسي</h1>
+                    <p class="text-[10px] text-amber-400 font-semibold">مدرس المادة: الشريف علي الكور</p>
+                </div>
+            </div>
+            <button onclick="toggleVoice()" id="voiceBtn" class="bg-slate-700 hover:bg-slate-600 text-amber-400 text-xs px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 border border-slate-600">
+                <i class="fas fa-volume-up" id="voiceIcon"></i> <span id="voiceText">الصوت: مفعل</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- عنوان الدرس -->
+    <div class="bg-slate-800 border border-slate-700 p-2 rounded-lg mb-2 flex items-center justify-between px-3">
+        <h2 class="text-xs font-bold text-amber-300"><i class="fas fa-project-diagram"></i> إيجاد الأكبر (المخطط القياسي للسبورة)</h2>
+        <span class="text-[10px] bg-slate-900 text-slate-400 px-2 py-0.5 rounded font-mono">max_abc.html</span>
+    </div>
+
+    <!-- لوحة التحكم بالخطوات والإعادة -->
+    <div class="flex gap-2 mb-2">
+        <button onclick="nextStep()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2 px-3 rounded-lg text-sm flex items-center justify-center gap-2 shadow">
+            <span>الخطوة التالية</span>
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <button onclick="resetSimulation()" class="bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2 px-3 rounded-lg text-sm">
+            <i class="fas fa-redo"></i> إعادة
+        </button>
+    </div>
+
+    <!-- نافذة الإدخال الموحد -->
+    <div id="inputBoxModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4">
+        <div class="bg-amber-500 text-slate-950 p-4 rounded-xl shadow-2xl border-2 border-white pulse-input w-full max-w-xs text-center">
+            <div class="font-extrabold text-sm mb-2">أدخل القيم الثلاث (A, B, C):</div>
+            <div class="grid grid-cols-3 gap-1.5 mb-3">
+                <div>
+                    <label class="text-[10px] font-bold block mb-1">A</label>
+                    <input type="number" id="inputA" placeholder="A" class="w-full text-center p-1.5 rounded text-slate-900 font-bold text-xs focus:outline-none">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold block mb-1">B</label>
+                    <input type="number" id="inputB" placeholder="B" class="w-full text-center p-1.5 rounded text-slate-900 font-bold text-xs focus:outline-none">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold block mb-1">C</label>
+                    <input type="number" id="inputC" placeholder="C" class="w-full text-center p-1.5 rounded text-slate-900 font-bold text-xs focus:outline-none">
+                </div>
+            </div>
+            <button onclick="submitAllInputs()" class="w-full bg-slate-900 text-amber-400 font-bold py-1.5 rounded text-sm">تأكيد المدخلات</button>
+        </div>
+    </div>
+
+    <!-- شاشة العرض الرئيسية -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2 flex-1">
+        
+        <!-- الجهة اليمنى: المخطط الانسيابي المطابق للصورة -->
+        <div class="bg-slate-800 rounded-xl border border-slate-700 p-2 relative flex flex-col items-center overflow-auto min-h-[440px]">
+            <div class="w-full flex justify-between items-center text-xs text-slate-400 mb-1 px-1">
+                <span><i class="fas fa-eye text-amber-400"></i> المخطط الانسيابي (نسخة السبورة)</span>
+                <span id="stepCounter" class="bg-slate-700 px-2 py-0.5 rounded text-white font-bold">الخطوة: 0</span>
+            </div>
+            <svg id="svgCanvas" width="360" height="500" viewBox="0 0 360 500" class="w-full"></svg>
+        </div>
+
+        <!-- الجهة اليسرى: السبورة والذاكرة -->
+        <div class="bg-slate-800 rounded-xl border border-slate-700 p-2 flex flex-col gap-2">
+            <div class="bg-slate-950 border border-amber-500/40 rounded-lg p-2 flex-1 flex flex-col">
+                <h3 class="text-amber-400 font-bold text-xs mb-1.5 flex items-center gap-1 border-b border-slate-800 pb-1">
+                    <i class="fas fa-chalkboard-teacher"></i> سبورة الإيضاح والتتبع (Whiteboard)
+                </h3>
+                <div id="whiteboardContent" class="flex-1 text-slate-200 font-mono text-[11px] overflow-auto space-y-1.5 min-h-[160px] p-1">
+                    <div class="text-slate-500">> جاهز لبدء الشرح والخطوات...</div>
+                </div>
+            </div>
+
+            <div class="bg-slate-950 border border-slate-700 rounded-lg p-2">
+                <h3 class="text-amber-400 font-bold text-xs mb-1"><i class="fas fa-microchip"></i> الذاكرة الحية (RAM)</h3>
+                <table class="w-full text-right text-xs">
+                    <tbody id="ramTableBody"><tr><td colspan="2" class="text-slate-500 text-center p-1">لا توجد متغيرات بعد</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- صندوق وصف الخطوة الأسفل -->
+    <div class="bg-slate-800 rounded-xl border border-slate-700 p-2">
+        <p id="stepDescription" class="text-slate-300 text-xs font-semibold">اضغط على زر "الخطوة التالية" لبدء الشرح الصوتي.</p>
+    </div>
+
+    <script>
+        let voiceEnabled = true;
+
+        function toggleVoice() {
+            voiceEnabled = !voiceEnabled;
+            document.getElementById('voiceIcon').className = voiceEnabled ? "fas fa-volume-up" : "fas fa-volume-mute";
+            document.getElementById('voiceText').textContent = voiceEnabled ? "الصوت: مفعل" : "الصوت: متوقف";
+            if(!voiceEnabled) window.speechSynthesis.cancel();
+        }
+
+        function speakText(text) {
+            if (!voiceEnabled || !('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'ar-SA';
+            utterance.rate = 0.95;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // إحداثيات العقد مطابقة تماماً لتخطيط الصورة الورقية
+        const maxNodes = [
+            { id: 'start', type: 'oval', text: 'بداية', x: 180, y: 25, fill: '#10b981' },
+            { id: 'inAll', type: 'parallelogram', text: 'A, B, C', x: 180, y: 85, fill: '#8b5cf6' },
+            { id: 'cond1', type: 'diamond', text: 'A > B ؟', x: 180, y: 155, fill: '#f59e0b' },
+            { id: 'setMaxB', type: 'rect', text: 'Max = B', x: 90, y: 235, fill: '#06b6d4' }, // يسار (لا)
+            { id: 'setMaxA', type: 'rect', text: 'Max = A', x: 270, y: 235, fill: '#06b6d4' }, // يمين (نعم)
+            { id: 'cond2', type: 'diamond', text: 'Max > C ؟', x: 180, y: 330, fill: '#f59e0b' },
+            { id: 'printC', type: 'parallelogram', text: 'C', x: 90, y: 415, fill: '#3b82f6' }, // يسار (لا)
+            { id: 'printMax', type: 'parallelogram', text: 'Max', x: 270, y: 415, fill: '#3b82f6' }, // يمين (نعم)
+            { id: 'end', type: 'oval', text: 'النهاية', x: 180, y: 480, fill: '#ef4444' }
+        ];
+
+        // الروابط الدقيقة المطابقة لصورة السبورة
+        const maxEdges = [
+            { from: 'start', to: 'inAll' }, 
+            { from: 'inAll', to: 'cond1' },
+            { from: 'cond1', to: 'setMaxB', label: 'لا' }, 
+            { from: 'cond1', to: 'setMaxA', label: 'نعم' },
+            { from: 'setMaxB', to: 'cond2' }, 
+            { from: 'setMaxA', to: 'cond2' },
+            { from: 'cond2', to: 'printC', label: 'لا' }, 
+            { from: 'cond2', to: 'printMax', label: 'نعم' },
+            { from: 'printC', to: 'end' }, 
+            { from: 'printMax', to: 'end' }
+        ];
+
+        let currentStep = 0;
+        let state = { variables: {}, whiteboard: [], waitingInput: false };
+
+        function initCanvas() {
+            const svg = document.getElementById('svgCanvas');
+            svg.innerHTML = '';
+
+            const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+            const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+            marker.setAttribute("id", "arrow");
+            marker.setAttribute("viewBox", "0 0 10 10");
+            marker.setAttribute("refX", "7"); marker.setAttribute("refY", "5");
+            marker.setAttribute("markerWidth", "6"); marker.setAttribute("markerHeight", "6");
+            marker.setAttribute("orient", "auto-start-reverse");
+            const mp = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            mp.setAttribute("d", "M 0 0 L 10 5 L 0 10 z"); 
+            mp.setAttribute("fill", "#fbbf24");
+            marker.appendChild(mp); defs.appendChild(marker); svg.appendChild(defs);
+
+            maxEdges.forEach(e => {
+                const f = maxNodes.find(n => n.id === e.from);
+                const t = maxNodes.find(n => n.id === e.to);
+                if (!f || !t) return;
+
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", f.x); line.setAttribute("y1", f.y + 14);
+                line.setAttribute("x2", t.x); line.setAttribute("y2", t.y - 14);
+                line.setAttribute("stroke", "#94a3b8"); line.setAttribute("stroke-width", "2");
+                line.setAttribute("marker-end", "url(#arrow)");
+                svg.appendChild(line);
+
+                if (e.label) {
+                    const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                    txt.setAttribute("x", (f.x + t.x) / 2 + (e.label === 'نعم' ? 8 : -12)); 
+                    txt.setAttribute("y", (f.y + t.y) / 2 - 2);
+                    txt.setAttribute("fill", "#f59e0b"); 
+                    txt.setAttribute("font-size", "10"); 
+                    txt.setAttribute("font-weight", "bold");
+                    txt.textContent = e.label;
+                    svg.appendChild(txt);
+                }
+            });
+
+            maxNodes.forEach(node => {
+                const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                g.setAttribute("id", `node-${node.id}`);
+
+                if (node.type === 'oval') {
+                    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                    rect.setAttribute("x", node.x - 35); rect.setAttribute("y", node.y - 14);
+                    rect.setAttribute("width", 70); rect.setAttribute("height", 28);
+                    rect.setAttribute("rx", 14); rect.setAttribute("fill", node.fill);
+                    g.appendChild(rect);
+                } else if (node.type === 'parallelogram') {
+                    const poly = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+                    poly.setAttribute("points", `${node.x-30},${node.y+14} ${node.x-42},${node.y-14} ${node.x+42},${node.y-14} ${node.x+30},${node.y+14}`);
+                    poly.setAttribute("fill", node.fill);
+                    g.appendChild(poly);
+                } else if (node.type === 'diamond') {
+                    const poly = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+                    poly.setAttribute("points", `${node.x},${node.y-16} ${node.x+45},${node.y} ${node.x},${node.y+16} ${node.x-45},${node.y}`);
+                    poly.setAttribute("fill", node.fill);
+                    g.appendChild(poly);
+                } else if (node.type === 'rect') {
+                    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                    rect.setAttribute("x", node.x - 40); rect.setAttribute("y", node.y - 14);
+                    rect.setAttribute("width", 80); rect.setAttribute("height", 28);
+                    rect.setAttribute("fill", node.fill); rect.setAttribute("rx", 4);
+                    g.appendChild(rect);
+                }
+
+                const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                txt.setAttribute("x", node.x); txt.setAttribute("y", node.y + 3);
+                txt.setAttribute("fill", "#ffffff"); txt.setAttribute("text-anchor", "middle");
+                txt.setAttribute("font-size", "9"); txt.setAttribute("font-weight", "bold");
+                txt.textContent = node.text;
+                g.appendChild(txt);
+
+                svg.appendChild(g);
+            });
+        }
+
+        function highlightNode(id) {
+            document.querySelectorAll('[id^="node-"]').forEach(el => el.classList.remove('node-active'));
+            const activeEl = document.getElementById(`node-${id}`);
+            if (activeEl) activeEl.classList.add('node-active');
+        }
+
+        function runSimulation(step) {
+            if (step === 0) {
+                const desc = "بدء الخوارزمية حسب المخطط القياسي.";
+                speakText(desc);
+                return { node: 'start', desc: desc, board: "البداية: تجهيز الخوارزمية." };
+            }
+            if (step === 1) {
+                const desc = "مطلوب إدخال الأعداد الثلاثة A, B, C دفعة واحدة.";
+                speakText(desc);
+                return { node: 'inAll', desc: desc, needInput: true };
+            }
+            if (step === 2) {
+                const desc = `تم إدخال القيم (A=${state.variables.A}, B=${state.variables.B}, C=${state.variables.C}). نفحص الشرط الأول: هل A > B؟`;
+                speakText("تم إدخال القيم. هل إي أكبر من بي؟");
+                return { node: 'cond1', desc: desc, board: `إدخال: A=${state.variables.A}, B=${state.variables.B}, C=${state.variables.C} <br> فحص: هل A > B؟` };
+            }
+            if (step === 3) {
+                const a = state.variables.A, b = state.variables.B;
+                if (a > b) {
+                    state.variables.Max = a;
+                    const desc = `نعم (يمين): A (${a}) أكبر من B، إذن Max = A (${a}).`;
+                    speakText("نعم، ماكس يساوي إي.");
+                    return { node: 'setMaxA', desc: desc, board: `الشرط (A > B) نعم -> <b>Max = ${a}</b>` };
+                } else {
+                    state.variables.Max = b;
+                    const desc = `لا (يسار): B (${b}) أكبر أو يساوي A، إذن Max = B (${b}).`;
+                    speakText("لا، ماكس يساوي بي.");
+                    return { node: 'setMaxB', desc: desc, board: `الشرط (A > B) لا -> <b>Max = ${b}</b>` };
+                }
+            }
+            if (step === 4) {
+                const desc = `الآن نفحص الشرط الثاني: هل Max (${state.variables.Max}) > C (${state.variables.C})؟`;
+                speakText("الآن نفحص هل ماكس أكبر من سي؟");
+                return { node: 'cond2', desc: desc, board: `فحص الشرط الثاني: هل Max (${state.variables.Max}) > C (${state.variables.C})؟` };
+            }
+            if (step === 5) {
+                const c = state.variables.C, currentMax = state.variables.Max;
+                if (currentMax > c) {
+                    const desc = `نعم (يمين): Max (${currentMax}) أكبر من C، إذن النتيجة النهائية هي طباعة Max (${currentMax}).`;
+                    speakText("نعم، طباعة ماكس.");
+                    state.finalOutput = currentMax;
+                    return { node: 'printMax', desc: desc, board: `الشرط نعم -> <b>طباعة Max = ${currentMax}</b>` };
+                } else {
+                    const desc = `لا (يسار): C (${c}) أكبر أو يساوي Max، إذن النتيجة النهائية هي طباعة C (${c}).`;
+                    speakText("لا، طباعة سي.");
+                    state.finalOutput = c;
+                    return { node: 'printC', desc: desc, board: `الشرط لا -> <b>طباعة C = ${c}</b>` };
+                }
+            }
+            if (step === 6) {
+                const desc = `الوصول إلى النهاية بعد طباعة النتيجة الكبرى (${state.finalOutput}).`;
+                speakText("الانتقال إلى النهاية.");
+                return { node: 'end', desc: desc, board: `اكتمل التنفيذ بنجاح. القيمة الكبرى المطبعة = ${state.finalOutput}` };
+            }
+            return null;
+        }
+
+        function nextStep() {
+            if (state.waitingInput) return;
+
+            const res = runSimulation(currentStep);
+            if (!res) return;
+
+            highlightNode(res.node);
+            document.getElementById('stepDescription').textContent = res.desc;
+            document.getElementById('stepCounter',).textContent = `الخطوة: ${currentStep + 1}`;
+
+            if (res.board) {
+                const wb = document.getElementById('whiteboardContent');
+                wb.innerHTML += `<div class="border-r-2 border-amber-500 pr-1 text-amber-200">▪ ${res.board}</div>`;
+                wb.scrollTop = wb.scrollHeight;
+            }
+
+            if (res.needInput) {
+                document.getElementById('inputBoxModal').classList.remove('hidden');
+                state.waitingInput = true;
+            } else {
+                currentStep++;
+            }
+
+            updateRAM();
+        }
+
+        function submitAllInputs() {
+            const aVal = document.getElementById('inputA').value.trim();
+            const bVal = document.getElementById('inputB').value.trim();
+            const cVal = document.getElementById('inputC').value.trim();
+
+            if (aVal === '' || bVal === '' || cVal === '') {
+                alert('الرجاء إدخال القيم الثلاث كاملة!');
+                return;
+            }
+
+            state.variables.A = Number(aVal);
+            state.variables.B = Number(bVal);
+            state.variables.C = Number(cVal);
+
+            document.getElementById('inputBoxModal').classList.add('hidden');
+            document.getElementById('inputA').value = '';
+            document.getElementById('inputB').value = '';
+            document.getElementById('inputC').value = '';
+            state.waitingInput = false;
+
+            currentStep++;
+            nextStep();
+        }
+
+        function updateRAM() {
+            const tbody = document.getElementById('ramTableBody');
+            tbody.innerHTML = '';
+            let keys = Object.keys(state.variables);
+            if (keys.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="2" class="text-slate-500 text-center p-1">لا توجد متغيرات بعد</td></tr>';
+                return;
+            }
+            keys.forEach(k => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td class="font-bold text-amber-400 p-1">${k}</td><td class="p-1 font-bold text-white">${state.variables[k]}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function resetSimulation() {
+            currentStep = 0;
+            state = { variables: {}, whiteboard: [], waitingInput: false };
+            document.getElementById('inputBoxModal').classList.add('hidden');
+            document.getElementById('inputA').value = '';
+            document.getElementById('inputB').value = '';
+            document.getElementById('inputC').value = '';
+            document.getElementById('whiteboardContent').innerHTML = '<div class="text-slate-500">> إعادة ضبط السبورة...</div>';
+            document.querySelectorAll('[id^="node-"]').forEach(el => el.classList.remove('node-active'));
+            initCanvas();
+            document.getElementById('stepCounter').textContent = 'الخطوة: 0';
+            document.getElementById('stepDescription').textContent = 'اضغط على "الخطوة التالية" لبدء الشرح الصوتي.';
+            updateRAM();
+            window.speechSynthesis.cancel();
+        }
+
+        window.onload = () => {
+            initCanvas();
+        };
+    </script>
+</body>
+</html>
