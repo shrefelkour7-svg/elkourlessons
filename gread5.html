@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محاكاة تفاعلية - درجات ومجموع 5 مواد</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-dark: #1e293b;
+            --btn-orange: #f59e0b;
+            --btn-hover: #d97706;
+            --accent-cyan: #38bdf8;
+            --accent-blue: #0284c7;
+            --border-color: #334155;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: #f8fafc;
+            margin: 0;
+            padding: 8px;
+            direction: rtl;
+        }
+
+        .header-card {
+            background: var(--card-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 6px;
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .header-title {
+            color: #fbbf24;
+            font-size: 0.95rem;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .btn-next {
+            flex: 2;
+            background: var(--btn-orange);
+            color: #0f172a;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);
+        }
+        .btn-next:hover { background: var(--btn-hover); color: white; }
+        .btn-next:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; box-shadow: none; }
+
+        .btn-reset {
+            flex: 1;
+            background: #334155;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        /* صندوق الإدخال الأصفر المخصص في الأعلى تماماً */
+        .yellow-input-box {
+            background: #fef08a;
+            border: 2px solid #eab308;
+            border-radius: 8px;
+            padding: 8px;
+            margin-bottom: 6px;
+            text-align: center;
+            display: none;
+            box-shadow: 0 4px 12px rgba(234, 179, 8, 0.4);
+        }
+
+        .yellow-input-box label {
+            display: block;
+            color: #713f12;
+            font-weight: bold;
+            font-size: 0.82rem;
+            margin-bottom: 4px;
+        }
+
+        .yellow-input-box input {
+            width: 85%;
+            padding: 6px;
+            border: 1px solid #ca8a04;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            text-align: center;
+            background: #ffffff;
+            color: #0f172a;
+            font-weight: bold;
+            margin-bottom: 6px;
+            outline: none;
+        }
+
+        .yellow-input-box button {
+            background: #ca8a04;
+            color: white;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        .yellow-input-box button:hover { background: #a16207; }
+
+        .notebook-grid {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 8px;
+            background: var(--card-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 8px;
+            margin-bottom: 6px;
+        }
+
+        .flow-panel {
+            flex: 1.8;
+            text-align: center;
+        }
+
+        .side-table-panel {
+            flex: 1.05;
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 6px;
+        }
+
+        .panel-title {
+            color: #fbbf24;
+            font-size: 0.78rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 4px;
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 3px;
+        }
+
+        .flow-svg {
+            width: 100%;
+            height: auto;
+            max-width: 300px;
+        }
+
+        .node-shape {
+            transition: all 0.3s ease;
+        }
+
+        .node-shape.active {
+            fill: #fef08a !important;
+            stroke: #eab308 !important;
+            stroke-width: 4px;
+            filter: drop-shadow(0 0 8px #f59e0b);
+        }
+
+        .handbook-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .handbook-table th {
+            color: var(--accent-cyan);
+            border-bottom: 2px solid var(--border-color);
+            padding: 3px 1px;
+            font-size: 0.65rem;
+        }
+
+        .handbook-table td {
+            padding: 3px 1px;
+            font-size: 0.68rem;
+            font-weight: bold;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .handbook-table tr.active-row {
+            background: rgba(245, 158, 11, 0.25);
+            color: #fbbf24;
+        }
+
+        /* خانة عرض اسم الطالب (الأولى) في الأسفل */
+        .full-output-row {
+            background: #064e3b;
+            border: 1px solid #059669;
+            border-radius: 6px;
+            padding: 6px;
+            text-align: center;
+            color: #34d399;
+            font-weight: bold;
+            font-size: 0.8rem;
+            margin-top: 6px;
+            display: none;
+            box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+        }
+
+        /* صندوق المجموع الكلي بدون علامة يساوي */
+        .total-box {
+            margin-top: 6px;
+            padding: 6px;
+            background: #1e293b;
+            border: 1px solid #059669;
+            border-radius: 6px;
+            text-align: center;
+            color: #34d399;
+            font-weight: bold;
+            font-size: 0.78rem;
+            display: none;
+        }
+
+        .card {
+            background: var(--card-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 8px;
+            margin-bottom: 6px;
+        }
+
+        .card-title {
+            color: #fbbf24;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .board-content {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 6px;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            color: #e2e8f0;
+            min-height: 50px;
+            max-height: 110px;
+            overflow-y: auto;
+        }
+
+        .q-btn {
+            width: 100%;
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            color: #e2e8f0;
+            padding: 8px;
+            border-radius: 6px;
+            text-align: right;
+            margin-bottom: 5px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .q-btn:hover { background: #1e293b; border-color: var(--accent-cyan); }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.88);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+
+        .quiz-modal-box {
+            background: #1e293b;
+            border: 2px solid var(--accent-blue);
+            border-radius: 14px;
+            padding: 16px;
+            width: 90%;
+            max-width: 340px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+        }
+
+        .quiz-option-btn {
+            width: 100%;
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            color: #f8fafc;
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            font-size: 0.82rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .quiz-option-btn:hover { background: #334155; border-color: var(--accent-cyan); }
+    </style>
+</head>
+<body>
+
+    <div class="modal-overlay" id="quizModal">
+        <div class="quiz-modal-box">
+            <div id="quizTitle" style="color:#fbbf24; font-weight:bold; font-size:0.9rem; margin-bottom:6px;">🎯 اختبار التتبع والتحليل</div>
+            <div id="quizQuestionText" style="font-size:0.83rem; color:#e2e8f0; margin-bottom:10px; line-height:1.4;"></div>
+            
+            <div id="quizOptionsContainer"></div>
+            <div id="quizFeedback" style="font-size:0.82rem; font-weight:bold; margin-top:8px; min-height:20px;"></div>
+
+            <div style="display:flex; gap:6px; margin-top:10px;">
+                <button id="quizRepeatBtn" style="flex:1; background:#334155; color:white; border:none; padding:6px; border-radius:6px; cursor:pointer; font-weight:bold; display:none;" onclick="loadQuiz(currentQuizType)">سؤال جديد 🔄</button>
+                <button style="flex:1; background:var(--accent-blue); color:white; border:none; padding:6px; border-radius:6px; cursor:pointer; font-weight:bold;" onclick="closeQuizModal()">إغلاق ✕</button>
+            </div>
+        </div>
+    </div>
+
+    <header class="header-card">
+        <div class="header-title">🏫 مدرسة اليرموك للتعليم الأساسي - أ. الشريف علي الكور</div>
+        <div style="font-size:0.72rem; color:#94a3b8; margin-top:1px;">محاكاة تفاعلية خطوة بخطوة - إدخال اسم الطالب ودرجات 5 مواد</div>
+    </header>
+
+    <div class="controls-row">
+        <button class="btn-next" id="nextBtn" onclick="nextStep()">الخطوة التالية ➔</button>
+        <button class="btn-reset" onclick="resetAll()">إعادة الضبط ↻</button>
+    </div>
+
+    <div class="yellow-input-box" id="yellowInputBox">
+        <label id="inputLabelText">أدخل البيانات:</label>
+        <input type="text" id="userInputVal" placeholder="اكتب هنا...">
+        <br>
+        <button onclick="submitUserInputValue()">تأكيد وإدخال ➔</button>
+    </div>
+
+    <div class="notebook-grid">
+        
+        <div class="flow-panel">
+            <div class="panel-title">📐 المخطط الانسيابي (درجات طالب)</div>
+            <svg class="flow-svg" viewBox="0 0 300 560">
+                <defs>
+                    <marker id="arr" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#38bdf8"/>
+                    </marker>
+                    <marker id="arr-slate" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                    </marker>
+                </defs>
+
+                <!-- البداية -->
+                <g id="node-start">
+                    <rect x="100" y="10" width="100" height="26" rx="13" fill="#10b981" class="node-shape"/>
+                    <text x="150" y="27" text-anchor="middle" fill="white" font-size="10" font-weight="bold">البداية</text>
+                </g>
+                <line x1="150" y1="36" x2="150" y2="54" stroke="#64748b" stroke-width="2" marker-end="url(#arr-slate)"/>
+
+                <!-- إدخال اسم الطالب Name -->
+                <g id="node-inputName">
+                    <polygon points="90,54 210,54 190,82 70,82" fill="#0284c7" class="node-shape"/>
+                    <text x="140" y="71" text-anchor="middle" fill="white" font-size="9" font-weight="bold">إدخال الاسم (Name)</text>
+                </g>
+                <line x1="140" y1="82" x2="140" y2="102" stroke="#64748b" stroke-width="2" marker-end="url(#arr-slate)"/>
+
+                <!-- N=1, S=0 -->
+                <g id="node-init">
+                    <rect x="75" y="102" width="130" height="26" fill="#0284c7" class="node-shape"/>
+                    <text x="140" y="119" text-anchor="middle" fill="white" font-size="9" font-weight="bold">N = 1 , S = 0</text>
+                </g>
+                <line x1="140" y1="128" x2="140" y2="150" stroke="#64748b" stroke-width="2" marker-end="url(#arr-slate)"/>
+
+                <!-- ? N <= 5 -->
+                <g id="node-dec">
+                    <polygon points="140,150 205,178 140,206 75,178" fill="#f59e0b" class="node-shape"/>
+                    <text x="140" y="182" text-anchor="middle" fill="#0f172a" font-size="10" font-weight="bold">? N <= 5</text>
+                </g>
+
+                <!-- Branch نعم -->
+                <line x1="140" y1="206" x2="140" y2="232" stroke="#38bdf8" stroke-width="2" marker-end="url(#arr)"/>
+                <text x="152" y="221" fill="#38bdf8" font-size="9" font-weight="bold">نعم</text>
+
+                <!-- Input Grade -->
+                <g id="node-inputGrade">
+                    <polygon points="90,232 190,232 170,260 70,260" fill="#0284c7" class="node-shape"/>
+                    <text x="130" y="249" text-anchor="middle" fill="white" font-size="9" font-weight="bold">إدخال الدرجة (Grade)</text>
+                </g>
+                <line x1="130" y1="260" x2="130" y2="280" stroke="#64748b" stroke-width="2" marker-end="url(#arr-slate)"/>
+
+                <!-- S = S + Grade -->
+                <g id="node-sum">
+                    <rect x="65" y="280" width="130" height="26" fill="#0284c7" class="node-shape"/>
+                    <text x="130" y="297" text-anchor="middle" fill="white" font-size="9" font-weight="bold">S = S + Grade</text>
+                </g>
+                <line x1="130" y1="306" x2="130" y2="326" stroke="#64748b" stroke-width="2" marker-end="url(#arr-slate)"/>
+
+                <!-- N = N + 1 -->
+                <g id="node-inc">
+                    <rect x="65" y="326" width="130" height="26" fill="#0284c7" class="node-shape"/>
+                    <text x="130" y="343" text-anchor="middle" fill="white" font-size="9" font-weight="bold">N = N + 1</text>
+                </g>
+
+                <!-- Loop Back (يسار) -->
+                <path d="M 65,339 L 25,339 L 25,115 L 138,115" fill="none" stroke="#38bdf8" stroke-width="2" marker-end="url(#arr)"/>
+                <text x="30" y="230" fill="#38bdf8" font-size="9" font-weight="bold">تكرار</text>
+
+                <!-- Branch لا (يمين) -->
+                <path d="M 205,178 C 245,178 245,376 140,376" fill="none" stroke="#ef4444" stroke-width="2"/>
+                <text x="220" y="170" fill="#ef4444" font-size="9" font-weight="bold">لا</text>
+                
+                <line x1="140" y1="376" x2="140" y2="396" stroke="#64748b" stroke-width="2" marker-end="url(#arr-slate)"/>
+
+                <!-- Print Name & S -->
+                <g id="node-printResult">
+                    <polygon points="80,396 200,396 180,426 60,426" fill="#059669" class="node-shape"/>
+                    <text x="130" y="414" text-anchor="middle" fill="white" font-size="9" font-weight="bold">Name , S (المجموع)</text>
+                </g>
+                <line x1="130" y1="426" x2="130" y2="448" stroke="#64748b" stroke-width="2" marker-end="url(#arr-slate)"/>
+
+                <!-- النهاية -->
+                <g id="node-end">
+                    <rect x="80" y="448" width="100" height="26" rx="13" fill="#ef4444" class="node-shape"/>
+                    <text x="130" y="465" text-anchor="middle" fill="white" font-size="10" font-weight="bold">النهاية</text>
+                </g>
+            </svg>
+        </div>
+
+        <div class="side-table-panel">
+            <div class="panel-title">📋 لوحة العداد (RAM)</div>
+
+            <table class="handbook-table">
+                <thead>
+                    <tr>
+                        <th>N</th>
+                        <th>Grade</th>
+                        <th>S (المجموع)</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
+
+            <!-- خانة عرض اسم الطالب (بدون كلمة الإخراج أو Output) -->
+            <div class="full-output-row" id="fullOutputRow">
+                <span id="outputResultText" style="color:#fef08a; font-size: 0.9rem;">—</span>
+            </div>
+
+            <!-- صندوق المجموع الكلي (بدون علامة يساوي) -->
+            <div class="total-box" id="totalBox">
+                المجموع الكلي <br> <span id="finalSumVal" style="font-size: 1.1rem; color: #fef08a;">0</span>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card">
+        <div class="card-title">📜 سبورة التتبع التفصيلي (Whiteboard)</div>
+        <div class="board-content" id="boardText">
+            > جاهز للمحاكاة التفاعلية خطوة بخطوة. اضغط على زر "الخطوة التالية ➔" للبدء.
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">❓ تدريبات وتساؤلات ذكية</div>
+        <button class="q-btn" onclick="openQuiz(1)">📌 تدريب 1: ماذا لو أردنا إدخال درجات 10 مواد بدلاً من 5؟ ما هو التعديل المطلوب؟</button>
+        <button class="q-btn" onclick="openQuiz(2)">📌 تدريب 2: كم عدد دورات الحلقة التكرارية لتنفيذ درجات 5 مواد؟</button>
+        <button class="q-btn" onclick="openQuiz(3)">📌 تدريب 3: لماذا يتم إدخال اسم الطالب (Name) خارج حلقة درجات المواد؟</button>
+    </div>
+
+<script>
+    let studentName = "";
+    let grades = [0, 0, 0, 0, 0];
+    let currentStepIndex = -1;
+    let currentQuizType = 1;
+
+    const flowSteps = [
+        { node: 'node-start', action: 'start' },
+        { node: 'node-inputName', action: 'inputName' },
+        { node: 'node-init', action: 'init' },
+        
+        // المادة 1
+        { node: 'node-dec', action: 'dec', loopIdx: 1 },
+        { node: 'node-inputGrade', action: 'inputGrade', loopIdx: 1 },
+        { node: 'node-sum', action: 'sum', loopIdx: 1 },
+        { node: 'node-inc', action: 'inc', loopIdx: 1 },
+
+        // المادة 2
+        { node: 'node-dec', action: 'dec', loopIdx: 2 },
+        { node: 'node-inputGrade', action: 'inputGrade', loopIdx: 2 },
+        { node: 'node-sum', action: 'sum', loopIdx: 2 },
+        { node: 'node-inc', action: 'inc', loopIdx: 2 },
+
+        // المادة 3
+        { node: 'node-dec', action: 'dec', loopIdx: 3 },
+        { node: 'node-inputGrade', action: 'inputGrade', loopIdx: 3 },
+        { node: 'node-sum', action: 'sum', loopIdx: 3 },
+        { node: 'node-inc', action: 'inc', loopIdx: 3 },
+
+        // المادة 4
+        { node: 'node-dec', action: 'dec', loopIdx: 4 },
+        { node: 'node-inputGrade', action: 'inputGrade', loopIdx: 4 },
+        { node: 'node-sum', action: 'sum', loopIdx: 4 },
+        { node: 'node-inc', action: 'inc', loopIdx: 4 },
+
+        // المادة 5
+        { node: 'node-dec', action: 'dec', loopIdx: 5 },
+        { node: 'node-inputGrade', action: 'inputGrade', loopIdx: 5 },
+        { node: 'node-sum', action: 'sum', loopIdx: 5 },
+        { node: 'node-inc', action: 'inc', loopIdx: 5 },
+
+        // الخروج والنهاية
+        { node: 'node-dec', action: 'decExit', loopIdx: 6 },
+        { node: 'node-printResult', action: 'print' },
+        { node: 'node-end', action: 'end' }
+    ];
+
+    let currentS = 0;
+    let waitingForInput = false;
+    let pendingAction = null;
+
+    function clearActive() {
+        document.querySelectorAll('.node-shape').forEach(el => el.classList.remove('active'));
+    }
+
+    function resetAll() {
+        currentStepIndex = -1;
+        currentS = 0;
+        studentName = "";
+        grades = [0, 0, 0, 0, 0];
+        waitingForInput = false;
+        pendingAction = null;
+        document.getElementById('yellowInputBox').style.display = 'none';
+        document.getElementById('fullOutputRow').style.display = 'none';
+        document.getElementById('totalBox').style.display = 'none';
+        document.getElementById('nextBtn').disabled = false;
+        clearActive();
+        document.getElementById('tableBody').innerHTML = '';
+        document.getElementById('boardText').innerHTML = '> تم إعادة ضبط المحاكاة. اضغط على "الخطوة التالية ➔" للبدء.';
+        document.getElementById('quizModal').style.display = 'none';
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+
+    function speak(text) {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            let msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'ar-SA';
+            window.speechSynthesis.speak(msg);
+        }
+    }
+
+    function nextStep() {
+        if (waitingForInput) return;
+
+        currentStepIndex++;
+        if (currentStepIndex >= flowSteps.length) {
+            currentStepIndex = flowSteps.length - 1;
+            return;
+        }
+
+        let step = flowSteps[currentStepIndex];
+        clearActive();
+
+        let shapeGroup = document.getElementById(step.node);
+        if (shapeGroup) {
+            shapeGroup.querySelector('.node-shape').classList.add('active');
+        }
+
+        let board = document.getElementById('boardText');
+        let desc = "";
+
+        if (step.action === 'start') {
+            desc = "▪ البداية : تجهيز البرنامج وتشغيله.";
+            appendBoard(desc);
+        }
+        else if (step.action === 'inputName') {
+            desc = "▪ إدخال البيانات : مطلوب إدخال اسم الطالب (Name).";
+            appendBoard(desc);
+            showYellowInput("أدخل اسم الطالب (Name):", "أحمد", function(val) {
+                studentName = val.trim() !== "" ? val.trim() : "أحمد";
+                appendBoard("  ↳ تم إدخال الاسم: " + studentName);
+            });
+        }
+        else if (step.action === 'init') {
+            currentS = 0;
+            desc = "▪ التهيئة : بدء العداد N = 1 (المادة الأولى)، وتصفير المجموع S = 0.";
+            appendBoard(desc);
+        }
+        else if (step.action === 'dec') {
+            desc = "▪ فحص الشرط : هل " + step.loopIdx + " <= 5؟ (نعم ✔) -> الدخول لتنفيذ دورة المادة رقم " + step.loopIdx + ".";
+            appendBoard(desc);
+        }
+        else if (step.action === 'inputGrade') {
+            desc = "▪ إدخال الدرجة : مطلوب إدخال درجة المادة رقم " + step.loopIdx + " (Grade).";
+            appendBoard(desc);
+            showYellowInput("أدخل درجة المادة رقم " + step.loopIdx + " لطالب (" + studentName + "):", "80", function(val) {
+                let num = parseFloat(val);
+                grades[step.loopIdx - 1] = isNaN(num) ? 80 : num;
+                appendBoard("  ↳ تم إدخال درجة المادة " + step.loopIdx + " = " + grades[step.loopIdx - 1]);
+            });
+        }
+        else if (step.action === 'sum') {
+            let prevS = currentS;
+            currentS += grades[step.loopIdx - 1];
+            desc = "▪ التراكم : S = " + prevS + " + " + grades[step.loopIdx - 1] + " = " + currentS + ".";
+            appendBoard(desc);
+            
+            let rowId = 'row-' + step.loopIdx;
+            appendRow(step.loopIdx, grades[step.loopIdx - 1], currentS, rowId);
+        }
+        else if (step.action === 'inc') {
+            desc = "▪ زيادة العداد : N أصبحت = " + (step.loopIdx + 1) + " (العودة لفحص الشرط).";
+            appendBoard(desc);
+        }
+        else if (step.action === 'decExit') {
+            desc = "▪ فحص الشرط : هل 6 <= 5؟ (❌ لا) -> خروج نهائي من حلقة التكرار!";
+            appendBoard(desc);
+            appendExitRow();
+        }
+        else if (step.action === 'print') {
+            desc = "▪ الطباعة : إخراج اسم الطالب ومجموعه الكلي (" + studentName + " , " + currentS + ").";
+            appendBoard(desc);
+            // عرض اسم الطالب فقط في خانة الإخراج (بدون كلمة الإخراج أو Output)
+            showFullOutput(studentName);
+            document.getElementById('finalSumVal').innerText = currentS;
+            document.getElementById('totalBox').style.display = 'block';
+            speak('مجموع درجات الطالب ' + studentName + ' يساوي ' + currentS);
+        }
+        else if (step.action === 'end') {
+            desc = "▪ النهاية : اكتمل تنفيذ البرنامج بنجاح.";
+            appendBoard(desc);
+        }
+    }
+
+    function showYellowInput(labelText, defaultVal, callback) {
+        waitingForInput = true;
+        document.getElementById('nextBtn').disabled = true;
+        let box = document.getElementById('yellowInputBox');
+        document.getElementById('inputLabelText').innerText = labelText;
+        let inputField = document.getElementById('userInputVal');
+        inputField.value = defaultVal;
+        
+        box.style.display = 'block';
+        window.scrollTo({top: 0, behavior: 'smooth'});
+
+        inputField.focus();
+        inputField.select();
+
+        pendingAction = function() {
+            let val = inputField.value;
+            box.style.display = 'none';
+            waitingForInput = false;
+            document.getElementById('nextBtn').disabled = false;
+            callback(val);
+        };
+    }
+
+    function submitUserInputValue() {
+        if (pendingAction) {
+            let action = pendingAction;
+            pendingAction = null;
+            action();
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        document.getElementById('userInputVal').addEventListener("keydown", function(e) {
+            if (e.key === "Enter") {
+                submitUserInputValue();
+            }
+        });
+    });
+
+    function appendBoard(text) {
+        let board = document.getElementById('boardText');
+        board.innerHTML += text + '<br>';
+        board.scrollTop = board.scrollHeight;
+    }
+
+    function appendRow(nVal, gVal, sVal, rowId) {
+        if (document.getElementById(rowId)) return;
+        let tbody = document.getElementById('tableBody');
+        
+        document.querySelectorAll('.handbook-table tr').forEach(r => r.classList.remove('active-row'));
+
+        let tr = document.createElement('tr');
+        tr.id = rowId;
+        tr.className = 'active-row';
+
+        tr.innerHTML = `
+            <td style="color:#fbbf24;">${nVal}</td>
+            <td style="color:#38bdf8;">${gVal}</td>
+            <td style="color:#a78bfa;">${sVal}</td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    function appendExitRow() {
+        if (document.getElementById('row-exit')) return;
+        let tbody = document.getElementById('tableBody');
+        document.querySelectorAll('.handbook-table tr').forEach(r => r.classList.remove('active-row'));
+        let tr = document.createElement('tr');
+        tr.id = 'row-exit';
+        tr.className = 'active-row';
+        tr.innerHTML = `
+            <td style="color:#ef4444;">6</td>
+            <td style="color:#ef4444;">—</td>
+            <td style="color:#ef4444;">خروج</td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    function showFullOutput(text) {
+        let outRow = document.getElementById('fullOutputRow');
+        document.getElementById('outputResultText').innerText = text;
+        outRow.style.display = 'block';
+    }
+
+    function openQuiz(type) {
+        currentQuizType = type;
+        loadQuiz(type);
+        document.getElementById('quizModal').style.display = 'flex';
+    }
+
+    function closeQuizModal() {
+        document.getElementById('quizModal').style.display = 'none';
+    }
+
+    function loadQuiz(type) {
+        document.getElementById('quizFeedback').innerText = "";
+        document.getElementById('quizRepeatBtn').style.display = "none";
+        let qText = document.getElementById('quizQuestionText');
+        let optContainer = document.getElementById('quizOptionsContainer');
+        optContainer.innerHTML = "";
+
+        if (type === 1) {
+            qText.innerHTML = "ماذا لو أردنا إدخال درجات <b>10 مواد</b> بدلاً من 5؟ ما هو التعديل المطلوب على المخطط؟";
+            let choices = [
+                { text: "نغير شرط قرار الفحص في المخطط ليصبح N <= 10 فقط", correct: true },
+                { text: "يجب إعادة رسم المخطط من جديد وتغيير اسم الطالب", correct: false },
+                { text: "نغير تهيئة المجموع S ليساوي 10", correct: false }
+            ].sort(() => Math.random() - 0.5);
+
+            choices.forEach(opt => {
+                let btn = document.createElement('button');
+                btn.className = 'quiz-option-btn';
+                btn.innerText = opt.text;
+                btn.onclick = function() {
+                    let fb = document.getElementById('quizFeedback');
+                    if (opt.correct) {
+                        fb.style.color = "#10b981";
+                        fb.innerText = "إجابة ذكية ودقيقة جداً! 🎯 التعديل ينحصر فقط في تغيير الشرط إلى N <= 10 لزيادة عدد اللفات.";
+                        speak("إجابة صحيحة");
+                    } else {
+                        fb.style.color = "#ef4444";
+                        fb.innerText = "إجابة غير صحيحة. التعديل البسيط هو في شرط الحلقة فقط.";
+                    }
+                    document.getElementById('quizRepeatBtn').style.display = "block";
+                };
+                optContainer.appendChild(btn);
+            });
+        }
+        else if (type === 2) {
+            qText.innerHTML = "كم عدد دورات الحلقة التكرارية (Loops) المخصصة لإدخال درجات 5 مواد؟";
+            let choices = [5, 6, 4].sort(() => Math.random() - 0.5);
+
+            choices.forEach(val => {
+                let btnElem = document.createElement('button');
+                btnElem.className = 'quiz-option-btn';
+                btnElem.innerText = val + " دورات";
+                btnElem.onclick = function() {
+                    let fb = document.getElementById('quizFeedback');
+                    if (val === 5) {
+                        fb.style.color = "#10b981";
+                        fb.innerText = "رائع جداً! 🌟 تتكرر الحلقة 5 مرات لخدمة المواد الخمس.";
+                    } else {
+                        fb.style.color = "#ef4444";
+                        fb.innerText = "إجابة خاطئة. عدد الدورات هو 5 دورات بعدد المواد.";
+                    }
+                    document.getElementById('quizRepeatBtn').style.display = "block";
+                };
+                optContainer.appendChild(btnElem);
+            });
+        }
+        else if (type === 3) {
+            qText.innerHTML = "لماذا يتم إدخال اسم الطالب (<b>Name</b>) خارج حلقة درجات المواد؟";
+            let choices = [
+                { text: "لأن اسم الطالب قيمة نصية ثابتة تدخل مرة واحدة لكل طالب وليس لكل مادة", correct: true },
+                { text: "لكي يتوقف البرنامج فوراً", correct: false },
+                { text: "لأنه يؤثر على حساب المجموع", correct: false }
+            ].sort(() => Math.random() - 0.5);
+
+            choices.forEach(opt => {
+                let btn = document.createElement('button');
+                btn.className = 'quiz-option-btn';
+                btn.innerText = opt.text;
+                btn.onclick = function() {
+                    let fb = document.getElementById('quizFeedback');
+                    if (opt.correct) {
+                        fb.style.color = "#10b981";
+                        fb.innerText = "ممتاز! 👏 الاسم يُدخل مرة واحدة في البداية بينما الدرجات تتكرر داخل الحلقة.";
+                    } else {
+                        fb.style.color = "#ef4444";
+                        fb.innerText = "إجابة خاطئة. لأن الاسم يخص الطالب ككل ولا يتكرر بتكرار المواد.";
+                    }
+                    document.getElementById('quizRepeatBtn').style.display = "block";
+                };
+                optContainer.appendChild(btn);
+            });
+        }
+    }
+</script>
+
+</body>
+</html>
