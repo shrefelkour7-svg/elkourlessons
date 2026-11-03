@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إنشاء مخطط انسيابي بالسحب والإفلات</title>
+    <style>
+        body {
+            font-family: Tahoma, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+            direction: rtl;
+            text-align: right;
+        }
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            background: #1e1e1e;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+        }
+        .school-header {
+            text-align: center;
+            border-bottom: 2px solid #0366d6;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        .school-header h2 {
+            margin: 0 0 5px 0;
+            color: #58a6ff;
+            font-size: 20px;
+        }
+        .school-header p {
+            margin: 0;
+            color: #8b949e;
+            font-size: 14px;
+        }
+        h1 {
+            color: #58a6ff;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 22px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #8b949e;
+            margin-bottom: 30px;
+            font-size: 15px;
+        }
+        .lesson-card {
+            background: #252526;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .lesson-card:hover {
+            transform: translateY(-2px);
+            border-color: #58a6ff;
+        }
+        .lesson-info h3 {
+            margin: 0 0 5px 0;
+            color: #ffffff;
+            font-size: 17px;
+        }
+        .lesson-info p {
+            margin: 0;
+            color: #8b949e;
+            font-size: 13px;
+        }
+        .lesson-btn {
+            background-color: #238636;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            white-space: nowrap;
+            transition: background-color 0.2s;
+        }
+        .lesson-btn:hover {
+            background-color: #2ea043;
+        }
+        .back-btn {
+            display: inline-block;
+            margin-top: 25px;
+            background-color: #333;
+            color: #e0e0e0;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-btn:hover {
+            background-color: #444;
+        }
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #8b949e;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- رأس الصفحة (المدرسة ومدرس المادة) -->
+        <div class="school-header">
+            <h2>مدرسة الحاسوب وتقنية المعلومات</h2>
+            <p>إعداد وتنسيق: الأستاذ شريف الكور</p>
+        </div>
+
+        <h1>إنشاء مخطط انسيابي بالسحب والإفلات</h1>
+        <p class="subtitle">قم بسحب وإسقاط الأشكال المناسبة لبناء المخطط الانسيابي الصحيح</p>
+
+        <!-- الدرس الأول -->
+        <div class="lesson-card">
+            <div class="lesson-info">
+                <h3>مخطط جمع عددين</h3>
+                <p>إنشاء مخطط انسيابي لحساب وطباعة حاصل جمع عددين.</p>
+            </div>
+            <a href="https://shrefelkour7-svg.github.io/elkourlessons/drgaplusb.html" class="lesson-btn" target="_blank">بدء التمرين</a>
+        </div>
+
+        <!-- الدرس الثاني -->
+        <div class="lesson-card">
+            <div class="lesson-info">
+                <h3>مخطط القيمة الأكبر بين قيمتين</h3>
+                <p>إنشاء مخطط انسيابي لإيجاد وطباعة القيمة الأكبر.</p>
+            </div>
+            <a href="https://shrefelkour7-svg.github.io/elkourlessons/dargmaxab.html" class="lesson-btn" target="_blank">بدء التمرين</a>
+        </div>
+
+        <!-- الدرس الثالث -->
+        <div class="lesson-card">
+            <div class="lesson-info">
+                <h3>مخطط نتيجة الطالب (ناجح / راسب)</h3>
+                <p>إنشاء مخطط انسيابي لاختبار حالة الطالب بناءً على الدرجة.</p>
+            </div>
+            <a href="https://shrefelkour7-svg.github.io/elkourlessons/dargpassorfail.html" class="lesson-btn" target="_blank">بدء التمرين</a>
+        </div>
+
+        <!-- الدرس الرابع -->
+        <div class="lesson-card">
+            <div class="lesson-info">
+                <h3>مخطط فحص العدد (موجب / سالب)</h3>
+                <p>إنشاء مخطط انسيابي لاختبار ما إذا كان العدد موجباً أم سالباً.</p>
+            </div>
+            <a href="https://shrefelkour7-svg.github.io/elkourlessons/dargposorneg1.html" class="lesson-btn" target="_blank">بدء التمرين</a>
+        </div>
+
+        <!-- الدرس الخامس -->
+        <div class="lesson-card">
+            <div class="lesson-info">
+                <h3>مخطط طباعة الأعداد من 1 إلى 10</h3>
+                <p>إنشاء مخطط انسيابي يتضمن التكرار لطباعة الأعداد من 1 إلى 10.</p>
+            </div>
+            <a href="https://shrefelkour7-svg.github.io/elkourlessons/dargprint1to10.html" class="lesson-btn" target="_blank">بدء التمرين</a>
+        </div>
+
+        <!-- الدرس السادس -->
+        <div class="lesson-card">
+            <div class="lesson-info">
+                <h3>مخطط طباعة الأعداد الفردية من 1 إلى 10</h3>
+                <p>إنشاء مخطط انسيابي لتتبع وطباعة الأعداد الفردية فقط.</p>
+            </div>
+            <a href="https://shrefelkour7-svg.github.io/elkourlessons/dargprintold1to10.html" class="lesson-btn" target="_blank">بدء التمرين</a>
+        </div>
+
+        <div style="text-align: center;">
+            <a href="index.html" class="back-btn">العودة إلى الصفحة الرئيسية للمنصة</a>
+        </div>
+
+    </div>
+
+    <footer>
+        جميع الحقوق محفوظة © الأستاذ شريف الكور 2026
+    </footer>
+
+</body>
+</html>
