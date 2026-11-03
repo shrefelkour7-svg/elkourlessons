@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محاكاة المخطط الانسيابي - حساب متوسط الأعداد الزوجية (N = 2 to 10)</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-dark: #1e293b;
+            --btn-orange: #f59e0b;
+            --btn-hover: #d97706;
+            --accent-cyan: #38bdf8;
+            --accent-blue: #0284c7;
+            --border-color: #334155;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: #f8fafc;
+            margin: 0;
+            padding: 8px;
+            direction: rtl;
+        }
+
+        .header-card {
+            background: var(--card-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 6px;
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .header-title {
+            color: #fbbf24;
+            font-size: 0.95rem;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .btn-next {
+            flex: 2;
+            background: var(--btn-orange);
+            color: #0f172a;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);
+        }
+        .btn-next:hover { background: var(--btn-hover); color: white; }
+
+        .btn-reset {
+            flex: 1;
+            background: #334155;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .notebook-grid {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 8px;
+            background: var(--card-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 8px;
+            margin-bottom: 6px;
+        }
+
+        .flow-panel {
+            flex: 1.8;
+            text-align: center;
+        }
+
+        .side-table-panel {
+            flex: 0.9;
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .panel-title {
+            color: #fbbf24;
+            font-size: 0.78rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 4px;
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 3px;
+        }
+
+        .flow-svg {
+            width: 100%;
+            height: auto;
+            max-width: 320px;
+        }
+
+        .node-shape {
+            transition: all 0.3s ease;
+        }
+
+        .node-shape.active {
+            fill: #fef08a !important;
+            stroke: #eab308 !important;
+            stroke-width: 4px;
+            filter: drop-shadow(0 0 8px #f59e0b);
+        }
+
+        .handbook-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+        }
+
+        .handbook-table th {
+            color: var(--accent-cyan);
+            border-bottom: 2px solid var(--border-color);
+            padding: 3px 1px;
+            font-size: 0.70rem;
+        }
+
+        .handbook-table td {
+            padding: 3px 1px;
+            font-size: 0.72rem;
+            font-weight: bold;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .handbook-table tr.active-row {
+            background: rgba(245, 158, 11, 0.25);
+            color: #fbbf24;
+        }
+
+        .total-box {
+            margin-top: 6px;
+            padding: 5px;
+            background: #1e293b;
+            border: 1px solid #059669;
+            border-radius: 6px;
+            text-align: center;
+            color: #34d399;
+            font-weight: bold;
+            font-size: 0.78rem;
+        }
+
+        .card {
+            background: var(--card-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 8px;
+            margin-bottom: 6px;
+        }
+
+        .card-title {
+            color: #fbbf24;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .board-content {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 6px;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            color: #e2e8f0;
+            min-height: 50px;
+            max-height: 110px;
+            overflow-y: auto;
+        }
+
+        .q-btn {
+            width: 100%;
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            color: #e2e8f0;
+            padding: 8px;
+            border-radius: 6px;
+            text-align: right;
+            margin-bottom: 5px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .q-btn:hover { background: #1e293b; border-color: var(--accent-cyan); }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.88);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+
+        .quiz-modal-box {
+            background: #1e293b;
+            border: 2px solid var(--accent-blue);
+            border-radius: 14px;
+            padding: 16px;
+            width: 90%;
+            max-width: 340px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+        }
+
+        .quiz-option-btn {
+            width: 100%;
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            color: #f8fafc;
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            font-size: 0.82rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .quiz-option-btn:hover { background: #334155; border-color: var(--accent-cyan); }
+    </style>
+</head>
+<body>
+
+    <div class="modal-overlay" id="quizModal">
+        <div class="quiz-modal-box">
+            <div id="quizTitle" style="color:#fbbf24; font-weight:bold; font-size:0.9rem; margin-bottom:6px;">🎯 اختبار التتبع والتحليل</div>
+            <div id="quizQuestionText" style="font-size:0.83rem; color:#e2e8f0; margin-bottom:10px; line-height:1.4;"></div>
+            
+            <div id="quizOptionsContainer"></div>
+            <div id="quizFeedback" style="font-size:0.82rem; font-weight:bold; margin-top:8px; min-height:20px;"></div>
+
+            <div style="display:flex; gap:6px; margin-top:10px;">
+                <button id="quizRepeatBtn" style="flex:1; background:#334155; color:white; border:none; padding:6px; border-radius:6px; cursor:pointer; font-weight:bold; display:none;" onclick="loadQuiz(currentQuizType)">سؤال جديد 🔄</button>
+                <button style="flex:1; background:var(--accent-blue); color:white; border:none; padding:6px; border-radius:6px; cursor:pointer; font-weight:bold;" onclick="closeQuizModal()">إغلاق ✕</button>
+            </div>
+        </div>
+    </div>
+
+    <header class="header-card">
+        <div class="header-title">🏫 مدرسة اليرموك للتعليم الأساسي - أ. الشريف علي الكور</div>
+        <div style="font-size:0.72rem; color:#94a3b8; margin-top:1px;">محاكاة حساب متوسط الأعداد الزوجية (N = 2 to 10)</div>
+    </header>
+
+    <div class="controls-row">
+        <button class="btn-next" onclick="nextStep()">الخطوة التالية ➔</button>
+        <button class="btn-reset" onclick="resetAll()">إعادة الضبط ↻</button>
+    </div>
+
+    <div class="notebook-grid">
+        
+        <div class="flow-panel">
+            <div class="panel-title">📐 المخطط الانسيابي المتتبع (المتوسط)</div>
+            <svg class="flow-svg" viewBox="0 0 300 550">
+                <defs>
+                    <marker id="arr" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#38bdf8"/>
+                    </marker>
+                    <marker id="arr-slate" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                    </marker>
+                </defs>
+
+                <!-- البداية -->
+                <g id="node-start">
+                    <rect x="100" y="10" width="100" height="26" rx="13" fill="#10b981" class="node-shape"/>
+                    <text x="150" y="27" text-anchor="middle" fill="white" font-size="10" font-weight="bold">البداية</text>
+                </g>
+                <line x1="150" y1="36" x2="150" y2="56" stroke="#64748b" stroke-width="2" marker-end="url(#arr-slate)"/>
+
+                <!-- N=2, S=0, C=0 -->
+                <g id="node-init">
+                    <rect x="65" y="58" width="170" height="30" fill="#0284c7" class="node-shape"/>
+                    <text x="150" y="78" text-anchor="middle" fill="white" font-size="9" font-weight="bold">N = 2 , S = 0 , C = 0</text>
+                </g>
+                <line x1="150" y1="88" x2="150" y2="112" stroke="#64748b" stroke-width="2" marker-end="url(#arr-slate)"/>
+
+                <!-- ? N <= 10 -->
+                <g id="node-dec">
+                    <polygon points="150,114 215,144 150,174 85,144" fill="#f59e0b" class="node-shape"/>
+                    <text x="150" y="148" text-anchor="middle" fill="#0f172a" font-size="10" font-weight="bold">? N <= 10</text>
+                </g>
+
+                <!-- Branch نعم -->
+                <line x1="150" y1="174" x2="150" y2="202" stroke="#38bdf8" stroke-width="2" marker-end="url(#arr)"/>
+                <text x="162" y="191" fill="#38bdf8" font-size="9" font-weight="bold">نعم</text>
+
+                <!-- Print N -->
+                <g id="node-printN">
+                    <polygon points="105,202 195,202 175,232 85,232" fill="#0284c7" class="node-shape"/>
+                    <text x="140" y="220" text-anchor="middle" fill="white" font-size="10" font-weight="bold">N</text>
+                </g>
+                <line x1="140" y1="232" x2="140" y2="252" stroke="#64748b" stroke-width="2" marker-end="url(#arr-slate)"/>
+
+                <!-- S = S + N -->
+                <g id="node-sum">
+                    <rect x="75" y="252" width="130" height="26" fill="#0284c7" class="node-shape"/>
+                    <text x="140" y="269" text-anchor="middle" fill="white" font-size="9" font-weight="bold">S = S + N</text>
+                </g>
+                <line x1="140" y1="278" x2="140" y2="296" stroke="#64748b" stroke-width="2" marker-end="url(#arr-slate)"/>
+
+                <!-- C = C + 1 -->
+                <g id="node-count">
+                    <rect x="75" y="296" width="130" height="26" fill="#0284c7" class="node-shape"/>
+                    <text x="140" y="313" text-anchor="middle" fill="white" font-size="9" font-weight="bold">C = C + 1</text>
+                </g>
+                <line x1="140" y1="322" x2="140" y2="340" stroke="#64748b" stroke-width="2" marker-end="url(#arr-slate)"/>
+
+                <!-- N = N + 2 -->
+                <g id="node-inc">
+                    <rect x="75" y="340" width="130" height="26" fill="#0284c7" class="node-shape"/>
+                    <text x="140" y="357" text-anchor="middle" fill="white" font-size="9" font-weight="bold">N = N + 2</text>
+                </g>
+
+                <!-- Loop Back (يسار) -->
+                <path d="M 75,353 L 30,353 L 30,101 L 142,101" fill="none" stroke="#38bdf8" stroke-width="2" marker-end="url(#arr)"/>
+                <text x="35" y="225" fill="#38bdf8" font-size="9" font-weight="bold">تكرار</text>
+
+                <!-- Branch لا (يمين) -->
+                <path d="M 215,144 L 260,144 L 260,398 L 150,398" fill="none" stroke="#ef4444" stroke-width="2"/>
+                <text x="230" y="137" fill="#ef4444" font-size="9" font-weight="bold">لا</text>
+                
+                <line x1="150" y1="398" x2="150" y2="416" stroke="#64748b" stroke-width="2" marker-end="url(#arr-slate)"/>
+
+                <!-- Avg = S / C -->
+                <g id="node-avg">
+                    <rect x="75" y="416" width="130" height="26" fill="#7c3aed" class="node-shape"/>
+                    <text x="140" y="433" text-anchor="middle" fill="white" font-size="9" font-weight="bold">Avg = S / C</text>
+                </g>
+                <line x1="140" y1="442" x2="140" y2="460" stroke="#64748b" stroke-width="2" marker-end="url(#arr-slate)"/>
+
+                <!-- Print Avg -->
+                <g id="node-printAvg">
+                    <polygon points="90,460 210,460 190,488 70,488" fill="#059669" class="node-shape"/>
+                    <text x="140" y="478" text-anchor="middle" fill="white" font-size="9" font-weight="bold">Avg (المتوسط)</text>
+                </g>
+                <line x1="140" y1="488" x2="140" y2="506" stroke="#64748b" stroke-width="2" marker-end="url(#arr-slate)"/>
+
+                <!-- النهاية -->
+                <g id="node-end">
+                    <rect x="90" y="506" width="100" height="26" rx="13" fill="#ef4444" class="node-shape"/>
+                    <text x="140" y="523" text-anchor="middle" fill="white" font-size="10" font-weight="bold">النهاية</text>
+                </g>
+            </svg>
+        </div>
+
+        <div class="side-table-panel">
+            <div class="panel-title">📋 لوحة العداد (RAM)</div>
+            <table class="handbook-table">
+                <thead>
+                    <tr>
+                        <th>N</th>
+                        <th>S</th>
+                        <th>C</th>
+                        <th>الإخراج</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
+
+            <div class="total-box" id="totalBox" style="display: none;">
+                المتوسط (Avg) = 6
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card">
+        <div class="card-title">📜 سبورة الخوارزمية والتتبع التفصيلي (Whiteboard)</div>
+        <div class="board-content" id="boardText">
+            > جاهز لمحاكاة خوارزمية حساب متوسط الأعداد الزوجية (2 إلى 10)... اضغط على "الخطوة التالية".
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">❓ تدريبات وتساؤلات ذكية</div>
+        <button class="q-btn" onclick="openQuiz(1)">📌 تدريب 1: لماذا أضفنا العداد C في هذه الخوارزمية ولم يكن موجوداً في خوارزمية المجموع؟</button>
+        <button class="q-btn" onclick="openQuiz(2)">📌 تدريب 2: ما هي قيمة المتوسط (Avg) النهائية عند طباعتها؟</button>
+        <button class="q-btn" onclick="openQuiz(3)">📌 تدريب 3: لماذا بدأت تهيئة N بالقيمة 2 بدلاً من 1؟</button>
+    </div>
+
+<script>
+    const exactSteps = [
+        { node: 'node-start', n: '—', s: '—', c: '—', out: '—', desc: '▪ البداية : تجهيز محيط البرنامج.' },
+        { node: 'node-init',  n: '2',  s: '0', c: '0', out: '—', desc: '▪ التهيئة : N = 2 (أول زوجي)، S = 0، C = 0.' },
+        { node: 'node-dec',   n: '2',  s: '0', c: '0', out: '—', desc: '▪ فحص الشرط : هل 2 <= 10؟ (نعم ✔) -> الدخول للحلقة.' },
+        { node: 'node-printN',n: '2',  s: '0', c: '0', out: '2', desc: '▪ الطباعة : إخراج العدد الزوجي N = 2.' },
+        { node: 'node-sum',   n: '2',  s: '2', c: '0', out: '2', desc: '▪ التراكم : S = 0 + 2 = 2.' },
+        { node: 'node-count', n: '2',  s: '2', c: '1', out: '2', desc: '▪ عداد العناصر : C = 0 + 1 = 1 عنصر.' },
+        { node: 'node-inc',   n: '4',  s: '2', c: '1', out: '2', desc: '▪ زيادة العداد : N أصبحت = 4.' },
+
+        { node: 'node-dec',   n: '4',  s: '2', c: '1', out: '2', desc: '▪ فحص الشرط : هل 4 <= 10؟ (نعم ✔) -> لفة جديدة.' },
+        { node: 'node-printN',n: '4',  s: '2', c: '1', out: '4', desc: '▪ الطباعة : إخراج العدد الزوجي N = 4.' },
+        { node: 'node-sum',   n: '4',  s: '6', c: '1', out: '4', desc: '▪ التراكم : S = 2 + 4 = 6.' },
+        { node: 'node-count', n: '4',  s: '6', c: '2', out: '4', desc: '▪ عداد العناصر : C = 1 + 1 = 2 عناصر.' },
+        { node: 'node-inc',   n: '6',  s: '6', c: '2', out: '4', desc: '▪ زيادة العداد : N أصبحت = 6.' },
+
+        { node: 'node-dec',   n: '6',  s: '6', c: '2', out: '4', desc: '▪ فحص الشرط : هل 6 <= 10؟ (نعم ✔) -> لفة جديدة.' },
+        { node: 'node-printN',n: '6',  s: '6', c: '2', out: '6', desc: '▪ الطباعة : إخراج العدد الزوجي N = 6.' },
+        { node: 'node-sum',   n: '6',  s: '12',c: '2', out: '6', desc: '▪ التراكم : S = 6 + 6 = 12.' },
+        { node: 'node-count', n: '6',  s: '12',c: '3', out: '6', desc: '▪ عداد العناصر : C = 2 + 1 = 3 عناصر.' },
+        { node: 'node-inc',   n: '8',  s: '12',c: '3', out: '6', desc: '▪ زيادة العداد : N أصبحت = 8.' },
+
+        { node: 'node-dec',   n: '8',  s: '12',c: '3', out: '6', desc: '▪ فحص الشرط : هل 8 <= 10؟ (نعم ✔) -> لفة جديدة.' },
+        { node: 'node-printN',n: '8',  s: '12',c: '3', out: '8', desc: '▪ الطباعة : إخراج العدد الزوجي N = 8.' },
+        { node: 'node-sum',   n: '8',  s: '20',c: '3', out: '8', desc: '▪ التراكم : S = 12 + 8 = 20.' },
+        { node: 'node-count', n: '8',  s: '20',c: '4', out: '8', desc: '▪ عداد العناصر : C = 3 + 1 = 4 عناصر.' },
+        { node: 'node-inc',   n: '10', s: '20',c: '4', out: '8', desc: '▪ زيادة العداد : N أصبحت = 10.' },
+
+        { node: 'node-dec',   n: '10', s: '20',c: '4', out: '8', desc: '▪ فحص الشرط : هل 10 <= 10؟ (نعم ✔) -> لفة أخيرة.' },
+        { node: 'node-printN',n: '10', s: '20',c: '4', out: '10',desc: '▪ الطباعة : إخراج العدد الزوجي N = 10.' },
+        { node: 'node-sum',   n: '10', s: '30',c: '4', out: '10',desc: '▪ التراكم : S = 20 + 10 = 30.' },
+        { node: 'node-count', n: '10', s: '30',c: '5', out: '10',desc: '▪ عداد العناصر : C = 4 + 1 = 5 عناصر.' },
+        { node: 'node-inc',   n: '12', s: '30',c: '5', out: '10',desc: '▪ زيادة العداد : N أصبحت = 12.' },
+
+        { node: 'node-dec',   n: '12', s: '30',c: '5', out: '—', desc: '▪ فحص الشرط : هل 12 <= 10؟ (❌ لا) -> خروج من الحلقة!' },
+        { node: 'node-avg',   n: '12', s: '30',c: '5', out: '—', desc: '▪ حساب المتوسط : Avg = S / C = 30 / 5 = 6.' },
+        { node: 'node-printAvg',n:'12', s: '30',c: '5', out: '6', desc: '▪ طباعة المتوسط النهائي Avg = 6.' },
+        { node: 'node-end',   n: '12', s: '30',c: '5', out: '6', desc: '▪ النهاية : اكتمل البرنامج بنجاح.' }
+    ];
+
+    let currentStepIndex = -1;
+    let currentQuizType = 1;
+
+    function clearActive() {
+        document.querySelectorAll('.node-shape').forEach(el => el.classList.remove('active'));
+    }
+
+    function resetAll() {
+        currentStepIndex = -1;
+        clearActive();
+        document.getElementById('tableBody').innerHTML = '';
+        document.getElementById('totalBox').style.display = 'none';
+        document.getElementById('boardText').innerHTML = '> جاهز لمحاكاة خوارزمية حساب متوسط الأعداد الزوجية... اضغط على "الخطوة التالية".';
+        document.getElementById('quizModal').style.display = 'none';
+    }
+
+    function speak(text) {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            let msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'ar-SA';
+            window.speechSynthesis.speak(msg);
+        }
+    }
+
+    function nextStep() {
+        currentStepIndex++;
+        if (currentStepIndex >= exactSteps.length) {
+            currentStepIndex = exactSteps.length - 1;
+            return;
+        }
+
+        let item = exactSteps[currentStepIndex];
+        clearActive();
+
+        let shapeGroup = document.getElementById(item.node);
+        if (shapeGroup) {
+            shapeGroup.querySelector('.node-shape').classList.add('active');
+        }
+
+        let board = document.getElementById('boardText');
+        if (currentStepIndex === 0) {
+            board.innerHTML = item.desc + '<br>';
+        } else {
+            board.innerHTML += item.desc + '<br>';
+        }
+        board.scrollTop = board.scrollHeight;
+
+        updateTableAndRAM(currentStepIndex);
+    }
+
+    function updateTableAndRAM(idx) {
+        if (idx === 6) {
+            appendRow('2', '2', '1', '2', 'row-2');
+        }
+        else if (idx === 11) {
+            appendRow('4', '6', '2', '4', 'row-4');
+        }
+        else if (idx === 16) {
+            appendRow('6', '12', '3', '6', 'row-6');
+        }
+        else if (idx === 21) {
+            appendRow('8', '20', '4', '8', 'row-8');
+        }
+        else if (idx === 26) {
+            appendRow('10', '30', '5', '10', 'row-10');
+        }
+        else if (idx === 28) {
+            appendRow('12', '30', '5', 'خروج', 'row-exit');
+        }
+        else if (idx === 29) {
+            appendRow('12', '30', '5', '6 (Avg)', 'row-avg');
+            document.getElementById('totalBox').style.display = 'block';
+            speak('المتوسط يساوي 6');
+        }
+    }
+
+    function appendRow(nVal, sVal, cVal, outVal, rowId) {
+        if (document.getElementById(rowId)) return;
+        let tbody = document.getElementById('tableBody');
+        
+        document.querySelectorAll('.handbook-table tr').forEach(r => r.classList.remove('active-row'));
+
+        let tr = document.createElement('tr');
+        tr.id = rowId;
+        tr.className = 'active-row';
+
+        let outStyle = outVal.includes('Avg') || outVal === '6' ? 'color:#34d399;' : (outVal === 'خروج' ? 'color:#ef4444;' : 'color:#38bdf8;');
+
+        tr.innerHTML = `
+            <td style="color:#fbbf24;">${nVal}</td>
+            <td style="color:#38bdf8;">${sVal}</td>
+            <td style="color:#a78bfa;">${cVal}</td>
+            <td style="${outStyle}">${outVal}</td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    function openQuiz(type) {
+        currentQuizType = type;
+        loadQuiz(type);
+        document.getElementById('quizModal').style.display = 'flex';
+    }
+
+    function closeQuizModal() {
+        document.getElementById('quizModal').style.display = 'none';
+    }
+
+    function loadQuiz(type) {
+        document.getElementById('quizFeedback').innerText = "";
+        document.getElementById('quizRepeatBtn').style.display = "none";
+        let qText = document.getElementById('quizQuestionText');
+        let optContainer = document.getElementById('quizOptionsContainer');
+        optContainer.innerHTML = "";
+
+        if (type === 1) {
+            qText.innerHTML = "لماذا أضفنا العداد <b>C</b> في هذه الخوارزمية الخاصة بحساب المتوسط؟";
+            let choices = [
+                { text: "لكي نقسم المجموع الكلي (S) عليه في النهاية لحساب المتوسط (Avg = S / C)", correct: true },
+                { text: "لزيادة قيمة N بمقدار 2", correct: false },
+                { text: "لتحديد عدد الأعداد الفردية", correct: false }
+            ].sort(() => Math.random() - 0.5);
+
+            choices.forEach(opt => {
+                let btn = document.createElement('button');
+                btn.className = 'quiz-option-btn';
+                btn.innerText = opt.text;
+                btn.onclick = function() {
+                    let fb = document.getElementById('quizFeedback');
+                    if (opt.correct) {
+                        fb.style.color = "#10b981";
+                        fb.innerText = "إجابة صحيحة وممتازة! 🎯 المتوسط الحسابي هو مجموع القيم مقسوماً على عددها (C).";
+                        speak("إجابة صحيحة");
+                    } else {
+                        fb.style.color = "#ef4444";
+                        fb.innerText = "إجابة خاطئة. العداد C يحسب عدد اللفات والدورات للقسمة عليه.";
+                    }
+                    document.getElementById('quizRepeatBtn').style.display = "block";
+                };
+                optContainer.appendChild(btn);
+            });
+        }
+        else if (type === 2) {
+            qText.innerHTML = "ما هي قيمة المتوسط النهائي (<b>Avg</b>) عند طباعتها للأعداد الزوجية من 2 إلى 10؟";
+            let choices = [6, 30, 5].sort(() => Math.random() - 0.5);
+
+            choices.forEach(val => {
+                let btn = document.createElement('button');
+                btn.className = 'quiz-option-btn';
+                btn.innerText = "Avg = " + val;
+                btn.onclick = function() {
+                    let fb = document.getElementById('quizFeedback');
+                    if (val === 6) {
+                        fb.style.color = "#10b981";
+                        fb.innerText = "رائع جداً! 🌟 المجموع S = 30 والعدد C = 5، إذن المتوسط 30 ÷ 5 = 6.";
+                    } else {
+                        fb.style.color = "#ef4444";
+                        fb.innerText = "إجابة خاطئة. المتوسط هو 30 ÷ 5 = 6.";
+                    }
+                    document.getElementById('quizRepeatBtn').style.display = "block";
+                };
+                optContainer.appendChild(btn);
+            });
+        }
+        else if (type === 3) {
+            qText.innerHTML = "لماذا بدأت تهيئة العداد بـ <b>N = 2</b> بدلاً من N = 1؟";
+            let choices = [
+                { text: "لأن المطلوب هو الأعداد الزوجية، وأول عدد زوجي في المدى هو 2", correct: true },
+                { text: "لكي تتوقف الحلقة أسرع", correct: false },
+                { text: "لأن القيمة 1 مخصصة للمجموع فقط", correct: false }
+            ].sort(() => Math.random() - 0.5);
+
+            choices.forEach(opt => {
+                let btn = document.createElement('button');
+                btn.className = 'quiz-option-btn';
+                btn.innerText = opt.text;
+                btn.onclick = function() {
+                    let fb = document.getElementById('quizFeedback');
+                    if (opt.correct) {
+                        fb.style.color = "#10b981";
+                        fb.innerText = "دقة متناهية! 👏 الأعداد الزوجية تبدأ من 2 وتزيد بمقدار 2.";
+                    } else {
+                        fb.style.color = "#ef4444";
+                        fb.innerText = "إجابة خاطئة. لأننا نريد الأعداد الزوجية التي تبدأ بـ 2.";
+                    }
+                    document.getElementById('quizRepeatBtn').style.display = "block";
+                };
+                optContainer.appendChild(btn);
+            });
+        }
+    }
+</script>
+
+</body>
+</html>
