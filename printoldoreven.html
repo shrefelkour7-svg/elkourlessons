@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محاكاة تفاعلية - فحص العدد زوجي أم فردي</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-dark: #1e293b;
+            --btn-orange: #f59e0b;
+            --btn-hover: #d97706;
+            --accent-cyan: #38bdf8;
+            --accent-blue: #0284c7;
+            --border-color: #334155;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: #f8fafc;
+            margin: 0;
+            padding: 8px;
+            direction: rtl;
+        }
+
+        .header-card {
+            background: var(--card-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 8px;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .header-title {
+            color: #fbbf24;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .btn-next {
+            flex: 2;
+            background: var(--btn-orange);
+            color: #0f172a;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.05rem;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);
+        }
+        .btn-next:hover { background: var(--btn-hover); color: white; }
+        .btn-next:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; box-shadow: none; }
+
+        .btn-reset {
+            flex: 1;
+            background: #334155;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .yellow-input-box {
+            background: #fef08a;
+            border: 2px solid #eab308;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 8px;
+            text-align: center;
+            display: none;
+            box-shadow: 0 4px 12px rgba(234, 179, 8, 0.4);
+        }
+
+        .yellow-input-box label {
+            display: block;
+            color: #713f12;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+        }
+
+        .yellow-input-box input {
+            width: 90%;
+            padding: 8px;
+            border: 1px solid #ca8a04;
+            border-radius: 6px;
+            font-size: 1rem;
+            text-align: center;
+            background: #ffffff;
+            color: #0f172a;
+            font-weight: bold;
+            margin-bottom: 8px;
+            outline: none;
+        }
+
+        .yellow-input-box button {
+            background: #ca8a04;
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .notebook-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: var(--card-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 8px;
+        }
+
+        @media (min-width: 768px) {
+            .notebook-grid {
+                flex-direction: row;
+                align-items: flex-start;
+            }
+            .flow-panel { flex: 1.6; }
+            .side-table-panel { flex: 1.1; }
+        }
+
+        .flow-panel {
+            text-align: center;
+            width: 100%;
+        }
+
+        .side-table-panel {
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .panel-title {
+            color: #fbbf24;
+            font-size: 0.85rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 6px;
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 4px;
+        }
+
+        .flow-svg {
+            width: 100%;
+            height: auto;
+            max-width: 360px;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .node-shape {
+            transition: all 0.3s ease;
+        }
+
+        .node-shape.active {
+            fill: #fef08a !important;
+            stroke: #eab308 !important;
+            stroke-width: 4px;
+            filter: drop-shadow(0 0 8px #f59e0b);
+        }
+
+        .handbook-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .handbook-table th {
+            color: var(--accent-cyan);
+            border-bottom: 2px solid var(--border-color);
+            padding: 5px 2px;
+            font-size: 0.75rem;
+        }
+
+        .handbook-table td {
+            padding: 6px 2px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .full-output-row {
+            background: #064e3b;
+            border: 1px solid #059669;
+            border-radius: 8px;
+            padding: 8px;
+            text-align: center;
+            color: #34d399;
+            font-weight: bold;
+            font-size: 0.95rem;
+            margin-top: 8px;
+            display: none;
+            box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+        }
+
+        .card {
+            background: var(--card-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 8px;
+        }
+
+        .card-title {
+            color: #fbbf24;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .board-content {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 8px;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: #e2e8f0;
+            min-height: 60px;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .q-btn {
+            width: 100%;
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            color: #e2e8f0;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: right;
+            margin-bottom: 6px;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .q-btn:hover { background: #1e293b; border-color: var(--accent-cyan); }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.88);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+
+        .quiz-modal-box {
+            background: #1e293b;
+            border: 2px solid var(--accent-blue);
+            border-radius: 14px;
+            padding: 16px;
+            width: 90%;
+            max-width: 360px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+        }
+
+        .quiz-option-btn {
+            width: 100%;
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            color: #f8fafc;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .quiz-option-btn:hover { background: #334155; border-color: var(--accent-cyan); }
+    </style>
+</head>
+<body>
+
+    <div class="modal-overlay" id="quizModal">
+        <div class="quiz-modal-box">
+            <div id="quizTitle" style="color:#fbbf24; font-weight:bold; font-size:0.95rem; margin-bottom:8px;">🎯 اختبار التتبع والتحليل</div>
+            <div id="quizQuestionText" style="font-size:0.85rem; color:#e2e8f0; margin-bottom:12px; line-height:1.4;"></div>
+            
+            <div id="quizOptionsContainer"></div>
+            <div id="quizFeedback" style="font-size:0.85rem; font-weight:bold; margin-top:10px; min-height:22px;"></div>
+
+            <div style="display:flex; gap:8px; margin-top:12px;">
+                <button id="quizRepeatBtn" style="flex:1; background:#334155; color:white; border:none; padding:8px; border-radius:6px; cursor:pointer; font-weight:bold; display:none;" onclick="loadQuiz(currentQuizType)">سؤال جديد 🔄</button>
+                <button style="flex:1; background:var(--accent-blue); color:white; border:none; padding:8px; border-radius:6px; cursor:pointer; font-weight:bold;" onclick="closeQuizModal()">إغلاق ✕</button>
+            </div>
+        </div>
+    </div>
+
+    <header class="header-card">
+        <div class="header-title">🏫 مدرسة اليرموك للتعليم الأساسي - أ. الشريف علي الكور</div>
+        <div style="font-size:0.75rem; color:#94a3b8; margin-top:2px;">محاكاة تفاعلية خطوة بخطوة - فحص العدد إذا كان زوجي أو فردي</div>
+    </header>
+
+    <div class="controls-row">
+        <button class="btn-next" id="nextBtn" onclick="nextStep()">الخطوة التالية ➔</button>
+        <button class="btn-reset" onclick="resetAll()">إعادة الضبط ↻</button>
+    </div>
+
+    <div class="yellow-input-box" id="yellowInputBox">
+        <label id="inputLabelText">أدخل العدد المطلوب فحصه:</label>
+        <input type="number" id="userInputVal" placeholder="أدخل عدداً...">
+        <br>
+        <button onclick="submitUserInputValue()">تأكيد وإدخال ➔</button>
+    </div>
+
+    <div class="notebook-grid">
+        
+        <div class="flow-panel">
+            <div class="panel-title">📐 المخطط الانسيابي (فحص زوجي / فردي)</div>
+            <svg class="flow-svg" viewBox="0 0 300 420">
+                <defs>
+                    <marker id="arr" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#38bdf8"/>
+                    </marker>
+                    <marker id="arr-slate" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                    </marker>
+                </defs>
+
+                <!-- البداية -->
+                <g id="node-start">
+                    <rect x="100" y="10" width="100" height="28" rx="14" fill="#10b981" class="node-shape"/>
+                    <text x="150" y="28" text-anchor="middle" fill="white" font-size="10" font-weight="bold">البداية</text>
+                </g>
+                <line x1="150" y1="38" x2="150" y2="60" stroke="#64748b" stroke-width="2" marker-end="url(#arr-slate)"/>
+
+                <!-- إدخال العدد N -->
+                <g id="node-inputN">
+                    <polygon points="90,60 210,60 190,90 70,90" fill="#0284c7" class="node-shape"/>
+                    <text x="140" y="79" text-anchor="middle" fill="white" font-size="9" font-weight="bold">إدخال العدد (N)</text>
+                </g>
+                <line x1="140" y1="90" x2="140" y2="115" stroke="#64748b" stroke-width="2" marker-end="url(#arr-slate)"/>
+
+                <!-- R = N Mod 2 -->
+                <g id="node-calc">
+                    <rect x="70" y="115" width="140" height="28" fill="#0284c7" class="node-shape"/>
+                    <text x="140" y="133" text-anchor="middle" fill="white" font-size="9" font-weight="bold">R = N Mod 2</text>
+                </g>
+                <line x1="140" y1="143" x2="140" y2="170" stroke="#64748b" stroke-width="2" marker-end="url(#arr-slate)"/>
+
+                <!-- ? R = 0 -->
+                <g id="node-dec">
+                    <polygon points="140,170 210,200 140,230 70,200" fill="#f59e0b" class="node-shape"/>
+                    <text x="140" y="204" text-anchor="middle" fill="#0f172a" font-size="10" font-weight="bold">? R = 0</text>
+                </g>
+
+                <!-- Branch نعم (يمين -> زوجي) -->
+                <path d="M 210,200 L 250,200 L 250,260" fill="none" stroke="#38bdf8" stroke-width="2" marker-end="url(#arr)"/>
+                <text x="225" y="192" fill="#38bdf8" font-size="9" font-weight="bold">نعم</text>
+
+                <!-- Print زوجي -->
+                <g id="node-printEven">
+                    <polygon points="210,260 290,260 270,290 190,290" fill="#059669" class="node-shape"/>
+                    <text x="240" y="279" text-anchor="middle" fill="white" font-size="9" font-weight="bold">طباعة "زوجي"</text>
+                </g>
+
+                <!-- Branch لا (يسار -> فردي) -->
+                <path d="M 70,200 L 30,200 L 30,260" fill="none" stroke="#ef4444" stroke-width="2" marker-end="url(#arr)"/>
+                <text x="45" y="192" fill="#ef4444" font-size="9" font-weight="bold">لا</text>
+
+                <!-- Print فردي -->
+                <g id="node-printOdd">
+                    <polygon points="10,260 90,260 70,290 -10,290" fill="#059669" class="node-shape"/>
+                    <text x="40" y="279" text-anchor="middle" fill="white" font-size="9" font-weight="bold">طباعة "فردي"</text>
+                </g>
+
+                <!-- المسارات إلى النهاية -->
+                <path d="M 240,290 L 240,335 L 150,335" fill="none" stroke="#64748b" stroke-width="2"/>
+                <path d="M 40,290 L 40,335 L 150,335" fill="none" stroke="#64748b" stroke-width="2"/>
+                <line x1="150" y1="335" x2="150" y2="355" stroke="#64748b" stroke-width="2" marker-end="url(#arr-slate)"/>
+
+                <!-- النهاية -->
+                <g id="node-end">
+                    <rect x="100" y="355" width="100" height="28" rx="14" fill="#ef4444" class="node-shape"/>
+                    <text x="150" y="373" text-anchor="middle" fill="white" font-size="10" font-weight="bold">النهاية</text>
+                </g>
+            </svg>
+        </div>
+
+        <div class="side-table-panel">
+            <div class="panel-title">📋 لوحة التتبع والذاكرة (RAM)</div>
+
+            <table class="handbook-table">
+                <thead>
+                    <tr>
+                        <th>العدد (N)</th>
+                        <th>باقي القسمة (R)</th>
+                        <th>الحالة</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr>
+                        <td colspan="3" style="color:#94a3b8; font-weight:normal;">في انتظار البدء...</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="full-output-row" id="fullOutputRow">
+                <span id="outputResultText" style="color:#fef08a;">—</span>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card">
+        <div class="card-title">📜 سبورة التتبع التفصيلي (Whiteboard)</div>
+        <div class="board-content" id="boardText">
+            > جاهز للمحاكاة التفاعلية خطوة بخطوة. اضغط على زر "الخطوة التالية ➔" للبدء.
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">❓ تدريبات وتساؤلات ذكية</div>
+        <button class="q-btn" onclick="openQuiz(1)">📌 تدريب 1: ماذا لو أردنا فحص وتعديل المخطط لطباعة "موجب" أو "سالب" بدلاً من "زوجي/فردي"؟</button>
+        <button class="q-btn" onclick="openQuiz(2)">📌 تدريب 2 (سؤال التتبع والخطأ): متى يخطئ هذا المخطط؟ وكيف تتأثر القيمة الصفرية (0)؟</button>
+    </div>
+
+<script>
+    let inputN = null;
+    let remainderR = null;
+    let resultType = "";
+    let currentStepIndex = -1;
+    let currentQuizType = 1;
+    let waitingForInput = false;
+
+    function clearActive() {
+        document.querySelectorAll('.node-shape').forEach(el => el.classList.remove('active'));
+    }
+
+    function resetAll() {
+        currentStepIndex = -1;
+        inputN = null;
+        remainderR = null;
+        resultType = "";
+        waitingForInput = false;
+        document.getElementById('yellowInputBox').style.display = 'none';
+        document.getElementById('fullOutputRow').style.display = 'none';
+        document.getElementById('nextBtn').disabled = false;
+        clearActive();
+        document.getElementById('tableBody').innerHTML = '<tr><td colspan="3" style="color:#94a3b8; font-weight:normal;">في انتظار البدء...</td></tr>';
+        document.getElementById('boardText').innerHTML = '> تم إعادة ضبط المحاكاة. اضغط على "الخطوة التالية ➔" للبدء.';
+        document.getElementById('quizModal').style.display = 'none';
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+
+    function speak(text) {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            let msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'ar-SA';
+            window.speechSynthesis.speak(msg);
+        }
+    }
+
+    function nextStep() {
+        if (waitingForInput) return;
+
+        currentStepIndex++;
+        clearActive();
+
+        let board = document.getElementById('boardText');
+
+        if (currentStepIndex === 0) {
+            document.querySelector('#node-start .node-shape').classList.add('active');
+            appendBoard("▪ البداية : تشغيل برنامج فحص طبيعة العدد.");
+        }
+        else if (currentStepIndex === 1) {
+            document.querySelector('#node-inputN .node-shape').classList.add('active');
+            appendBoard("▪ إدخال البيانات : مطلوب إدخال قيمة العدد (N).");
+            showYellowInput("أدخل العدد المراد فحصه (مثال: 8 أو 7):", "8", function(val) {
+                inputN = parseInt(val);
+                if (isNaN(inputN)) inputN = 8;
+                appendBoard("  ↳ تم إدخال العدد N = " + inputN);
+            });
+        }
+        else if (currentStepIndex === 2) {
+            document.querySelector('#node-calc .node-shape').classList.add('active');
+            remainderR = Math.abs(inputN % 2);
+            appendBoard("▪ الحساب : قسمة العدد على 2 لحساب الباقي R = " + inputN + " Mod 2 = " + remainderR);
+        }
+        else if (currentStepIndex === 3) {
+            document.querySelector('#node-dec .node-shape').classList.add('active');
+            if (remainderR === 0) {
+                resultType = "زوجي";
+                appendBoard("▪ فحص الشرط : هل الباقي R = 0؟ (نعم ✔) -> الاتجاه لطباعة زوجي.");
+            } else {
+                resultType = "فردي";
+                appendBoard("▪ فحص الشرط : هل الباقي R = 0؟ (❌ لا) -> الاتجاه لطباعة فردي.");
+            }
+        }
+        else if (currentStepIndex === 4) {
+            if (resultType === "زوجي") {
+                document.querySelector('#node-printEven .node-shape').classList.add('active');
+            } else {
+                document.querySelector('#node-printOdd .node-shape').classList.add('active');
+            }
+            appendBoard("▪ الطباعة : إخراج النتيجة النهائية ⬅ [ " + inputN + " هو عدد " + resultType + " ]");
+            updateTable(inputN, remainderR, resultType);
+            showFullOutput("العدد " + inputN + " هو عدد " + resultType);
+            speak("العدد " + inputN + " هو عدد " + resultType);
+        }
+        else if (currentStepIndex === 5) {
+            document.querySelector('#node-end .node-shape').classList.add('active');
+            appendBoard("▪ النهاية : اكتملت عملية الفحص بنجاح.");
+        }
+    }
+
+    function showYellowInput(labelText, defaultVal, callback) {
+        waitingForInput = true;
+        document.getElementById('nextBtn').disabled = true;
+        let box = document.getElementById('yellowInputBox');
+        document.getElementById('inputLabelText').innerText = labelText;
+        let inputField = document.getElementById('userInputVal');
+        inputField.value = defaultVal;
+        
+        box.style.display = 'block';
+        window.scrollTo({top: 0, behavior: 'smooth'});
+
+        inputField.focus();
+        inputField.select();
+
+        pendingAction = function() {
+            let val = inputField.value;
+            box.style.display = 'none';
+            waitingForInput = false;
+            document.getElementById('nextBtn').disabled = false;
+            callback(val);
+        };
+    }
+
+    function submitUserInputValue() {
+        if (pendingAction) {
+            let action = pendingAction;
+            pendingAction = null;
+            action();
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        document.getElementById('userInputVal').addEventListener("keydown", function(e) {
+            if (e.key === "Enter") {
+                submitUserInputValue();
+            }
+        });
+    });
+
+    function appendBoard(text) {
+        let board = document.getElementById('boardText');
+        board.innerHTML += text + '<br>';
+        board.scrollTop = board.scrollHeight;
+    }
+
+    function updateTable(nVal, rVal, resVal) {
+        let tbody = document.getElementById('tableBody');
+        tbody.innerHTML = `
+            <tr>
+                <td style="color:#fbbf24;">${nVal}</td>
+                <td style="color:#38bdf8;">${rVal}</td>
+                <td style="color:#a78bfa;">${resVal}</td>
+            </tr>
+        `;
+    }
+
+    function showFullOutput(text) {
+        let outRow = document.getElementById('fullOutputRow');
+        document.getElementById('outputResultText').innerText = text;
+        outRow.style.display = 'block';
+    }
+
+    function openQuiz(type) {
+        currentQuizType = type;
+        loadQuiz(type);
+        document.getElementById('quizModal').style.display = 'flex';
+    }
+
+    function closeQuizModal() {
+        document.getElementById('quizModal').style.display = 'none';
+    }
+
+    function loadQuiz(type) {
+        document.getElementById('quizFeedback').innerText = "";
+        document.getElementById('quizRepeatBtn').style.display = "none";
+        let qText = document.getElementById('quizQuestionText');
+        let optContainer = document.getElementById('quizOptionsContainer');
+        optContainer.innerHTML = "";
+
+        if (type === 1) {
+            qText.innerHTML = "<b>سؤال التعديل البرمجي:</b> ما هي المعادلة وشرط الفحص المطلوب لطباعة <b>موجب</b> أو <b>سالب</b> بدلاً من زوجي/فردي؟";
+            let choices = [
+                { text: "نستبدل شرط القسمة بشرط المقارنة (? N > 0) فإذا كان نعم يطبع موجب وإذا لا يطبع سالب", correct: true },
+                { text: "نغير المعادلة لتصبح R = N * 2 فقط", correct: false },
+                { text: "نضيف حلقة تكرارية تبدأ من 1 إلى N", correct: false }
+            ].sort(() => Math.random() - 0.5);
+
+            choices.forEach(opt => {
+                let btn = document.createElement('button');
+                btn.className = 'quiz-option-btn';
+                btn.innerText = opt.text;
+                btn.onclick = function() {
+                    let fb = document.getElementById('quizFeedback');
+                    if (opt.correct) {
+                        fb.style.color = "#10b981";
+                        fb.innerText = "إجابة ممتازة! 🎯 لطباعة موجب أو سالب نقارن العدد بالصفر مباشر (? N > 0).";
+                        speak("إجابة صحيحة");
+                    } else {
+                        fb.style.color = "#ef4444";
+                        fb.innerText = "إجابة خاطئة. المقارنة بالصفر هي المفتاح لتحديد الإشارة.";
+                    }
+                    document.getElementById('quizRepeatBtn').style.display = "block";
+                };
+                optContainer.appendChild(btn);
+            });
+        }
+        else if (type === 2) {
+            qText.innerHTML = "<b>سؤال التتبع والتحليل الدقيق:</b> متى يخطئ مخطط (موجب / سالب) إذا كان لا يعالج القيمة الصفرية (0)؟ وما هي النتيجة التلقائية للعدد 0 في هذا المخطط؟";
+            let choices = [
+                { text: "يخطئ عند إدخال الصفر (0)؛ لأن المخطط يصنفه كعدد 'سالب' أو 'زوجي' مباشرة بدلاً من معالجته كعنصر محايد", correct: true },
+                { text: "يتوقف المخطط عن العمل تماماً ويعطي خطأ برمجياً", correct: false },
+                { text: "لا يخطئ أبداً لأن الصفر عدد سالب دائماً", correct: false }
+            ].sort(() => Math.random() - 0.5);
+
+            choices.forEach(opt => {
+                let btn = document.createElement('button');
+                btn.className = 'quiz-option-btn';
+                btn.innerText = opt.text;
+                btn.onclick = function() {
+                    let fb = document.getElementById('quizFeedback');
+                    if (opt.correct) {
+                        fb.style.color = "#10b981";
+                        fb.innerText = "تحليل عميق ودقيق جداً! 👏 عند إدخال الصفر (0) دون تخصيص شرط مستقل له (? N = 0)، سيعتبره شرط المقارنة عدداً غير موجب وبالتالي يخرجه كـ 'سالب'، وهو خطأ منطقي لأن الصفر محايد ليس موجباً ولا سالباً.";
+                        speak("تحليل صحيح وممتاز");
+                    } else {
+                        fb.style.color = "#ef4444";
+                        fb.innerText = "إجابة خاطئة. القيمة الصفرية تحتاج شرطاً مستقلاً لتفادي الخطأ المنطقي.";
+                    }
+                    document.getElementById('quizRepeatBtn').style.display = "block";
+                };
+                optContainer.appendChild(btn);
+            });
+        }
+    }
+</script>
+
+</body>
+</html>
