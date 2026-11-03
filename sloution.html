@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>خطوات حل المسائل - مدرسة اليرموك للتعليم الأساسي</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-dark: #1e293b;
+            --accent-gold: #fbbf24;
+            --accent-cyan: #38bdf8;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --text-light: #f8fafc;
+            --border-color: #334155;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            margin: 0;
+            padding: 12px;
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header-card {
+            background: var(--card-dark);
+            border: 2px solid var(--accent-gold);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+        }
+
+        .header-title {
+            color: var(--accent-gold);
+            font-size: 1.1rem;
+            margin: 0 0 4px 0;
+            font-weight: bold;
+        }
+
+        .header-sub {
+            color: var(--accent-cyan);
+            font-size: 0.85rem;
+            margin: 0;
+            font-weight: bold;
+        }
+
+        .map-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .main-circle {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #2563eb, #1e3a8a);
+            border: 3px solid var(--accent-gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #ffffff;
+            text-align: center;
+            padding: 10px;
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.3);
+        }
+
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 8px;
+            width: 100%;
+        }
+
+        .step-btn {
+            background: var(--card-dark);
+            border: 2px solid var(--accent-cyan);
+            border-radius: 8px;
+            padding: 10px 6px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.8rem;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+        }
+
+        .step-btn:hover {
+            background: #334155;
+            border-color: var(--accent-gold);
+        }
+
+        .step-btn.active {
+            background: var(--accent-gold);
+            color: #0f172a;
+            border-color: #ffffff;
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+        }
+
+        .content-display {
+            width: 100%;
+            background: var(--card-dark);
+            border: 1px solid var(--accent-gold);
+            border-radius: 10px;
+            padding: 14px;
+            box-sizing: border-box;
+            min-height: 110px;
+            margin-top: 5px;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+
+        .content-display.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .content-title {
+            color: var(--accent-gold);
+            font-size: 0.95rem;
+            margin-top: 0;
+            margin-bottom: 8px;
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 5px;
+        }
+
+        .content-list {
+            margin: 0;
+            padding-right: 18px;
+            font-size: 0.85rem;
+            color: #e2e8f0;
+            line-height: 1.5;
+        }
+
+        .content-list li {
+            margin-bottom: 5px;
+        }
+
+        .example-section {
+            background: var(--card-dark);
+            border: 2px dashed var(--accent-cyan);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .example-title {
+            color: var(--accent-cyan);
+            font-size: 1rem;
+            margin-top: 0;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .quiz-section {
+            background: var(--card-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .quiz-title {
+            color: var(--accent-gold);
+            font-size: 1.05rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 8px;
+            margin-top: 0;
+            margin-bottom: 12px;
+        }
+
+        .question-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+        }
+
+        .option-btn {
+            display: block;
+            width: 100%;
+            text-align: right;
+            background: #334155;
+            color: white;
+            border: 1px solid #475569;
+            padding: 8px 12px;
+            margin: 6px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .option-btn:hover {
+            background: #475569;
+        }
+
+        .feedback {
+            margin-top: 6px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <header class="header-card">
+            <h1 class="header-title">مدرسة اليرموك للتعليم الأساسي</h1>
+            <p class="header-sub">إعداد المعلم: الأستاذ الشريف علي الكور</p>
+        </header>
+
+        <div class="map-container">
+            
+            <div class="main-circle">خطوات حل المسائل</div>
+
+            <div class="steps-grid">
+                <div class="step-btn" onclick="showStep('s1', this)">1. فهم وتحليل المسألة</div>
+                <div class="step-btn" onclick="showStep('s2', this)">2. كتابة الخوارزمية</div>
+                <div class="step-btn" onclick="showStep('s3', this)">3. مخططات الانسياب</div>
+                <div class="step-btn" onclick="showStep('s4', this)">4. كتابة البرنامج</div>
+                <div class="step-btn" onclick="showStep('s5', this)">5. التنفيذ والاختبار والتصحيح</div>
+                <div class="step-btn" onclick="showStep('s6', this)">6. التوثيق</div>
+            </div>
+
+            <!-- 1. فهم وتحليل المسألة -->
+            <div id="s1" class="content-display">
+                <h3 class="content-title">الخطوة الأولى: فهم المسألة وتحليلها</h3>
+                <ul class="content-list">
+                    <li>تعد خطوة فهم المسألة وتحليل عناصرها من الأمور المهمة التي يجب عدم تجاهلها للوصول للحل السليم.</li>
+                    <li>تجاهل هذه الخطوة قد يؤدي إلى خطأ في حل المسألة.</li>
+                    <li><b>عناصر التحليل:</b> المدخلات المتوفرة، المخرجات وشكلها (النتائج)، وطرق الحل المختلفة (المعالجة بقانون رياضي).</li>
+                </ul>
+            </div>
+
+            <!-- 2. كتابة الخوارزمية -->
+            <div id="s2" class="content-display">
+                <h3 class="content-title">الخطوة الثانية: كتابة خطوات خوارزمية</h3>
+                <ul class="content-list">
+                    <li>الخوارزمية هي مجموعة من الخطوات الواضحة والمتسلسلة والمنطقية بلغة الإنسان (مثل اللغة العربية).</li>
+                    <li>تُكتب لتوضيح خطوات الحل قبل تحويلها إلى لغة البرمجة.</li>
+                </ul>
+            </div>
+
+            <!-- 3. مخططات الانسياب -->
+            <div id="s3" class="content-display">
+                <h3 class="content-title">الخطوة الثالثة: رسم مخططات الانسياب</h3>
+                <ul class="content-list">
+                    <li>عبارة عن ترجمة خطوات الخوارزمية باستخدام أشكال هندسية معينة.</li>
+                    <li>تهدف لتبسيط طريقة الحل وتسهيل فهمه من قبل جميع المبرمجين لأن الأشكال الهندسية لغة مشتركة بينهم.</li>
+                </ul>
+            </div>
+
+            <!-- 4. كتابة البرنامج -->
+            <div id="s4" class="content-display">
+                <h3 class="content-title">الخطوة الرابعة: كتابة البرنامج بإحدى لغات البرمجة</h3>
+                <ul class="content-list">
+                    <li>لغات البرمجة هي وسيلة التخاطب بين الإنسان والحاسوب.</li>
+                    <li>من الأمثلة عليها: (C++), (Java), (Delphi), (Small Basic).</li>
+                </ul>
+            </div>
+
+            <!-- 5. التنفيذ والاختبار والتصحيح -->
+            <div id="s5" class="content-display">
+                <h3 class="content-title">الخطوة الخامسة: التنفيذ والاختبار والتصحيح</h3>
+                <ul class="content-list">
+                    <li>تنفيذ البرامج باستخدام الحاسوب واختبار صحتها.</li>
+                    <li>يُنفذ البرنامج أكثر من مرة بإعطائه مدخلات مختلفة للتأكد من عمله بالشكل الصحيح والحصول على النتائج المطلوبة.</li>
+                </ul>
+            </div>
+
+            <!-- 6. التوثيق -->
+            <div id="s6" class="content-display">
+                <h3 class="content-title">الخطوة السادسة: التوثيق</h3>
+                <ul class="content-list">
+                    <li>التوثيق هو وصف كتابي للبرنامج، أهدافه، أجزائه، وإجراءات تشغيله.</li>
+                    <li>مدعوم بالوثائق والمستندات والرسوم الإيضاحية لتسهيل التعديل والتطوير وتصحيح الأخطاء من قبل المبرمجين مستقبلاً.</li>
+                </ul>
+            </div>
+
+        </div>
+
+        <!-- مثال وتدريب عملي منفصل -->
+        <div class="example-section">
+            <h3 class="example-title">📌 تدريب عملي: تحليل عناصر المسألة (مثال 1)</h3>
+            <p style="font-size: 0.9rem; margin-top: 0; color: #f1f5f9;"><b>المسألة:</b> إيجاد مساحة مستطيل طوله (س) وعرضه (ص).</p>
+            <ul class="content-list" style="color: #cbd5e1;">
+                <li><b>المدخلات:</b> طول المستطيل (س)، وعرض المستطيل (ص).</li>
+                <li><b>المخرجات (النتائج):</b> مساحة المستطيل.</li>
+                <li><b>طرق الحل (المعالجة):</b> تطبيق القانون الرياضي (المساحة = الطول × العرض أي المساحة = س × ص).</li>
+            </ul>
+        </div>
+
+        <!-- بنك الأسئلة التقويمي الشامل -->
+        <div class="quiz-section">
+            <h2 class="quiz-title">📝 بنك أسئلة تقويمي (خطوات حل المسائل)</h2>
+
+            <div class="question-card">
+                <p><b>س1: تجاهل خطوة فهم المسألة وتحليل عناصرها قد يؤدي إلى:</b></p>
+                <button class="option-btn" onclick="checkAnswer(this, true, 'q1')">أ) خطأ في حل المسألة</button>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'q1')">ب) سرعة تنفيذ البرنامج</button>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'q1')">ج) نجاح البرنامج مباشرة</button>
+                <div id="q1-feed" class="feedback"></div>
+            </div>
+
+            <div class="question-card">
+                <p><b>س2: الخوارزمية تعرف بأنها مجموعة من الخطوات الواضحة والمتسلسلة بلغة:</b></p>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'q2')">أ) لغة الآلة فقط (0 و 1)</button>
+                <button class="option-btn" onclick="checkAnswer(this, true, 'q2')">ب) الإنسان (مثل اللغة العربية أو الانجليزية)</button>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'q2')">ج) لغة البرمجة الصعبة</button>
+                <div id="q2-feed" class="feedback"></div>
+            </div>
+
+            <div class="question-card">
+                <p><b>س3: الغرض الأساسي من استخدام مخططات الانسياب (الأشكال الهندسية):</b></p>
+                <button class="option-btn" onclick="checkAnswer(this, true, 'q3')">أ) تبسيط طريقة الحل وفهمها من جميع المبرمجين</button>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'q3')">ب) إعاقة فهم البرنامج وتبرير الأخطاء</button>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'q3')">ج) الاستغناء عن لغات البرمجة كلياً</button>
+                <div id="q3-feed" class="feedback"></div>
+            </div>
+
+            <div class="question-card">
+                <p><b>س4: من أمثلة لغات البرمجة المذكورة في المنهج:</b></p>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'q4')">أ) ويندوز ووورد</button>
+                <button class="option-btn" onclick="checkAnswer(this, true, 'q4')">ب) سي (C++) وجافا (Java)</button>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'q4')">ج) فوتوشوب وإكسل</button>
+                <div id="q4-feed" class="feedback"></div>
+            </div>
+
+            <div class="question-card">
+                <p><b>س5: التوثيق في البرمجة يُقصد به:</b></p>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'q5')">أ) مسح البرنامج نهائياً من الحاسوب</button>
+                <button class="option-btn" onclick="checkAnswer(this, true, 'q5')">ب) وصف كتابي للبرنامج وأهدافه وأجزائه للرجوع إليه</button>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'q5')">ج) تشغيل البرنامج بسرعة عالية</button>
+                <div id="q5-feed" class="feedback"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function showStep(stepId, btnElement) {
+            const displays = document.querySelectorAll('.content-display');
+            displays.forEach(d => d.classList.remove('active'));
+
+            const buttons = document.querySelectorAll('.step-btn');
+            buttons.forEach(b => b.classList.remove('active'));
+
+            document.getElementById(stepId).classList.add('active');
+            btnElement.classList.add('active');
+        }
+
+        function checkAnswer(btn, isCorrect, qId) {
+            let parent = btn.parentElement;
+            let btns = parent.querySelectorAll('.option-btn');
+            btns.forEach(b => b.style.opacity = '0.6');
+            
+            let feed = document.getElementById(qId + '-feed');
+            feed.style.display = 'block';
+
+            if(isCorrect) {
+                btn.style.background = '#10b981';
+                btn.style.opacity = '1';
+                feed.style.background = 'rgba(16, 185, 129, 0.2)';
+                feed.style.color = '#34d399';
+                feed.innerHTML = '✔ إجابة صحيحة!';
+            } else {
+                btn.style.background = '#ef4444';
+                btn.style.opacity = '1';
+                feed.style.background = 'rgba(239, 68, 68, 0.2)';
+                feed.style.color = '#f87171';
+                feed.innerHTML = '❌ إجابة خاطئة!';
+            }
+        }
+    </script>
+
+</body>
+</html>
