@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محاكاة المخطط الانسيابي - جمع عددين</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-dark: #1e293b;
+            --btn-orange: #f59e0b;
+            --btn-orange-hover: #d97706;
+            --accent-blue: #0284c7;
+            --text-light: #f8fafc;
+            --border-color: #334155;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            margin: 0;
+            padding: 10px;
+            direction: rtl;
+        }
+
+        .header-card {
+            background: var(--card-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 10px;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .header-title {
+            color: #fbbf24;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .header-sub {
+            color: #94a3b8;
+            font-size: 0.8rem;
+            margin-top: 2px;
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .btn-next {
+            flex: 2;
+            background: var(--btn-orange);
+            color: #0f172a;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.05rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+        .btn-next:hover { background: var(--btn-orange-hover); color: white; }
+
+        .btn-reset {
+            flex: 1;
+            background: #334155;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+
+        .step-badge {
+            background: var(--card-dark);
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: #38bdf8;
+            text-align: center;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .card {
+            background: var(--card-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 10px;
+            margin-bottom: 8px;
+        }
+
+        .card-title {
+            color: #fbbf24;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .flow-svg {
+            width: 100%;
+            max-width: 240px;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .node-shape {
+            transition: all 0.3s ease;
+        }
+
+        .node-shape.active {
+            fill: #fef08a !important;
+            stroke: #eab308 !important;
+            stroke-width: 4px;
+            filter: drop-shadow(0 0 10px #f59e0b);
+        }
+
+        .board-content {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: #e2e8f0;
+            min-height: 80px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .memory-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .memory-table th, .memory-table td {
+            border: 1px solid var(--border-color);
+            padding: 6px;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+        .memory-table th {
+            background: #0f172a;
+            color: #38bdf8;
+        }
+
+        /* صندوق حوار الإدخال البرمجي الأساسي */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+
+        .modal-box-input {
+            background: #f59e0b;
+            border: 2px solid #fbbf24;
+            border-radius: 16px;
+            padding: 20px;
+            width: 90%;
+            max-width: 340px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+        }
+
+        .modal-field {
+            flex: 1;
+        }
+
+        .modal-field label {
+            display: block;
+            font-size: 0.85rem;
+            color: #0f172a;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .modal-field input {
+            width: 100%;
+            padding: 10px;
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            color: #0f172a;
+            text-align: center;
+            font-size: 1.1rem;
+            box-sizing: border-box;
+            font-weight: bold;
+        }
+
+        .modal-btn {
+            background: #0f172a;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.05rem;
+            margin-top: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .modal-btn:hover { background: #1e293b; }
+
+        /* نافذة صندوق حوار الأسئلة التفاعلية (Quiz Modal) */
+        .quiz-modal-box {
+            background: #1e293b;
+            border: 2px solid var(--accent-blue);
+            border-radius: 16px;
+            padding: 20px;
+            width: 90%;
+            max-width: 360px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+        }
+
+        .quiz-option-btn {
+            width: 100%;
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            color: #f8fafc;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .quiz-option-btn:hover { background: #334155; border-color: var(--accent-blue); }
+
+        /* أزرار الأسئلة في الشاشة الرئيسية */
+        .q-btn {
+            width: 100%;
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            color: #e2e8f0;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: right;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+        .q-btn:hover { background: #1e293b; }
+    </style>
+</head>
+<body>
+
+    <!-- صندوق حوار الإدخال البرمجي الأساسي -->
+    <div class="modal-overlay" id="inputModal">
+        <div class="modal-box-input">
+            <div style="color:#0f172a; font-weight:bold; font-size:1.1rem; margin-bottom:15px;">أدخل القيمتين (Num1, Num2):</div>
+            <div style="display:flex; gap:10px; margin-bottom:10px;">
+                <div class="modal-field">
+                    <label>Num2</label>
+                    <input type="number" id="inN2" value="10">
+                </div>
+                <div class="modal-field">
+                    <label>Num1</label>
+                    <input type="number" id="inN1" value="5">
+                </div>
+            </div>
+            <button class="modal-btn" onclick="confirmInput()">تأكيد المدخلات</button>
+        </div>
+    </div>
+
+    <!-- صندوق حوار اختبار التتبع والتدريب (Quiz Modal) -->
+    <div class="modal-overlay" id="quizModal">
+        <div class="quiz-modal-box">
+            <div id="quizTitle" style="color:#fbbf24; font-weight:bold; font-size:1rem; margin-bottom:10px;">🎯 اختبار تدريبي</div>
+            <div id="quizQuestionText" style="font-size:0.9rem; color:#e2e8f0; margin-bottom:15px; line-height:1.5;"></div>
+            
+            <div id="quizOptionsContainer"></div>
+
+            <div id="quizFeedback" style="font-size:0.9rem; font-weight:bold; margin-top:12px; min-height:24px;"></div>
+
+            <div style="display:flex; gap:8px; margin-top:15px;">
+                <button id="quizRepeatBtn" style="flex:1; background:#334155; color:white; border:none; padding:8px; border-radius:6px; cursor:pointer; font-weight:bold; display:none;" onclick="loadQuiz(currentQuizType)">سؤال جديد 🔄</button>
+                <button style="flex:1; background:var(--accent-blue); color:white; border:none; padding:8px; border-radius:6px; cursor:pointer; font-weight:bold;" onclick="closeQuizModal()">إغلاق الصندوق ✕</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- الهيدر -->
+    <header class="header-card">
+        <h1 class="header-title">🏫 مدرسة اليرموك للتعليم الأساسي</h1>
+        <div class="header-sub">مدرس المادة: الشريف علي الكور | محاكاة جمع عددين</div>
+    </header>
+
+    <!-- أزرار التحكم والعداد -->
+    <div class="controls-row">
+        <button class="btn-next" onclick="nextStep()">الخطوة التالية ➔</button>
+        <button class="btn-reset" onclick="resetAll()">إعادة ↻</button>
+    </div>
+    <div class="step-badge" id="stepCounter">الخطوة: 0</div>
+
+    <!-- المخطط الانسيابي -->
+    <div class="card" style="text-align: center;">
+        <div class="card-title">📐 المخطط الانسيابي القياسي</div>
+        <svg class="flow-svg" viewBox="0 0 200 280">
+            <!-- Start -->
+            <g id="node-start">
+                <rect x="50" y="10" width="100" height="30" rx="15" fill="#10b981" class="node-shape"/>
+                <text x="100" y="29" text-anchor="middle" fill="white" font-size="11" font-weight="bold">بداية</text>
+            </g>
+            <line x1="100" y1="40" x2="100" y2="65" stroke="#64748b" stroke-width="2"/>
+
+            <!-- Input -->
+            <g id="node-input">
+                <polygon points="35,65 165,65 145,98 15,98" fill="#8b5cf6" class="node-shape"/>
+                <text x="90" y="85" text-anchor="middle" fill="white" font-size="10" font-weight="bold">إدخال Num1 , Num2</text>
+            </g>
+            <line x1="90" y1="98" x2="90" y2="125" stroke="#64748b" stroke-width="2"/>
+
+            <!-- Process -->
+            <g id="node-process">
+                <rect x="25" y="125" width="130" height="35" fill="#0284c7" class="node-shape"/>
+                <text x="90" y="147" text-anchor="middle" fill="white" font-size="10" font-weight="bold">Sum = Num1 + Num2</text>
+            </g>
+            <line x1="90" y1="160" x2="90" y2="185" stroke="#64748b" stroke-width="2"/>
+
+            <!-- Output -->
+            <g id="node-output">
+                <polygon points="35,185 165,185 145,218 15,218" fill="#0284c7" class="node-shape"/>
+                <text x="90" y="205" text-anchor="middle" fill="white" font-size="10" font-weight="bold">طباعة Sum</text>
+            </g>
+            <line x1="90" y1="218" x2="90" y2="242" stroke="#64748b" stroke-width="2"/>
+
+            <!-- End -->
+            <g id="node-end">
+                <rect x="50" y="242" width="100" height="30" rx="15" fill="#ef4444" class="node-shape"/>
+                <text x="100" y="261" text-anchor="middle" fill="white" font-size="11" font-weight="bold">النهاية</text>
+            </g>
+        </svg>
+    </div>
+
+    <!-- سبورة الإيضاح والتتبع التفصيلية -->
+    <div class="card">
+        <div class="card-title">📜 سبورة الخوارزمية والتتبع التفصيلي (Whiteboard)</div>
+        <div class="board-content" id="boardText">
+            > جاهز لبدء الشرح والتنفيذ... اضغط على "الخطوة التالية".
+        </div>
+    </div>
+
+    <!-- الذاكرة الحية -->
+    <div class="card">
+        <div class="card-title">💾 الذاكرة الحية (RAM)</div>
+        <table class="memory-table">
+            <thead>
+                <tr>
+                    <th>المتغير</th>
+                    <th>القيمة المخزنة</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Num1</td>
+                    <td id="memN1" style="color:#fbbf24; font-weight:bold;">-</td>
+                </tr>
+                <tr>
+                    <td>Num2</td>
+                    <td id="memN2" style="color:#fbbf24; font-weight:bold;">-</td>
+                </tr>
+                <tr>
+                    <td>Sum</td>
+                    <td id="memSum" style="color:#38bdf8; font-weight:bold;">-</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- أزرار تدريبات واختبارات التتبع الحوارية المنبثقة -->
+    <div class="card">
+        <div class="card-title">❓ تدريبات واختبارات تفاعلية للطالب</div>
+        <button class="q-btn" onclick="openQuiz(1)">📌 تدريب 1: تتبع قيمة Sum في الذاكرة الحية (اختيار متعدد)</button>
+        <button class="q-btn" onclick="openQuiz(2)">📌 تدريب 2: تعديل خطوة المعالجة (حاصل الضرب)</button>
+        <button class="q-btn" onclick="openQuiz(3)">📌 تدريب 3: خطأ تنفيذ الجمع قبل خطوة الإدخال</button>
+    </div>
+
+<script>
+    let step = 0;
+    let valN1 = 0;
+    let valN2 = 0;
+    let currentQuizType = 1;
+
+    function resetAll() {
+        step = 0;
+        valN1 = 0;
+        valN2 = 0;
+        document.getElementById('stepCounter').innerText = "الخطوة: 0";
+        document.getElementById('boardText').innerHTML = "> جاهز لبدء الشرح والتنفيذ... اضغط على 'الخطوة التالية'.";
+        document.getElementById('memN1').innerText = "-";
+        document.getElementById('memN2').innerText = "-";
+        document.getElementById('memSum').innerText = "-";
+        document.getElementById('inputModal').style.display = 'none';
+        document.getElementById('quizModal').style.display = 'none';
+        clearActive();
+    }
+
+    function clearActive() {
+        document.querySelectorAll('.node-shape').forEach(el => el.classList.remove('active'));
+    }
+
+    function speak(text) {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            let msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'ar-SA';
+            window.speechSynthesis.speak(msg);
+        }
+    }
+
+    function nextStep() {
+        let board = document.getElementById('boardText');
+
+        if (step === 0) {
+            step = 1;
+            clearActive();
+            document.getElementById('node-start').querySelector('.node-shape').classList.add('active');
+            document.getElementById('stepCounter').innerText = "الخطوة: 1 (البداية)";
+            let log = "▪ البداية : تجهيز الخوارزمية واستعداد معالج الذاكرة.<br>";
+            board.innerHTML = log;
+            speak("البداية، تجهيز الخوارزمية واستعداد المعالج.");
+        }
+        else if (step === 1) {
+            step = 2;
+            clearActive();
+            document.getElementById('node-input').querySelector('.node-shape').classList.add('active');
+            document.getElementById('stepCounter').innerText = "الخطوة: 2 (إدخال القيم)";
+            document.getElementById('inputModal').style.display = 'flex';
+            let log = "▪ إدخال البيانات : ظهر صندوق الحوار لاستقبال قيم العددين.<br>";
+            board.innerHTML += "<br>" + log;
+            speak("خطوة الإدخال، يرجى إدخال قيم العددين في صندوق الحوار.");
+        }
+        else if (step === 2) {
+            if (document.getElementById('inputModal').style.display === 'flex') {
+                alert("يرجى إدخال وتأكيد القيم في صندوق الحوار أولاً!");
+                return;
+            }
+            step = 3;
+            clearActive();
+            document.getElementById('node-process').querySelector('.node-shape').classList.add('active');
+            document.getElementById('stepCounter').innerText = "الخطوة: 3 (المعالجة)";
+            let sum = valN1 + valN2;
+            document.getElementById('memSum').innerText = sum;
+            let log = "▪ المعالجة الحسابية التفصيلية :<br>&nbsp;&nbsp; - جلب Num1 = " + valN1 + " و Num2 = " + valN2 + " من الذاكرة الحية.<br>&nbsp;&nbsp; - تنفيـذ المعادلة : Sum = " + valN1 + " + " + valN2 + " = " + sum + "<br>&nbsp;&nbsp; - تخزين الناتج " + sum + " في المتغير Sum داخل الذاكرة.<br>";
+            board.innerHTML += "<br>" + log;
+            speak("خطوة المعالجة: جمع Num1 + Num2 وتخزين الناتج " + sum + " في المتغير Sum داخل الذاكرة.");
+        }
+        else if (step === 3) {
+            step = 4;
+            clearActive();
+            document.getElementById('node-output').querySelector('.node-shape').classList.add('active');
+            document.getElementById('stepCounter').innerText = "الخطوة: 4 (الطباعة والمخرجات)";
+            let sum = valN1 + valN2;
+            let log = "▪ المخرجات والشاشة :<br>&nbsp;&nbsp; - جلب قيمة Sum من الذاكرة وتساوي (" + sum + ").<br>&nbsp;&nbsp; - طباعة وتظهير القيمة " + sum + " على الشاشة للمستخدم.<br>";
+            board.innerHTML += "<br>" + log;
+            speak("خطوة الطباعة: إظهار وطباعة الناتج " + sum + " على الشاشة.");
+        }
+        else if (step === 4) {
+            step = 5;
+            clearActive();
+            document.getElementById('node-end').querySelector('.node-shape').classList.add('active');
+            document.getElementById('stepCounter').innerText = "الخطوة: 5 (النهاية)";
+            let log = "▪ اكتمل التنفيذ بنجاح وتوقف البرنامج عند خطوة النهاية (End).<br>";
+            board.innerHTML += "<br>" + log;
+            speak("اكتمل التنفيذ بنجاح وتم الوصول إلى خطوة النهاية.");
+        }
+        else {
+            let log = "▪ التنفيذ مكتمل بالفعل. اضغط على زر 'إعادة ↻' لبدء محاكاة جديدة.<br>";
+            board.innerHTML += "<br>" + log;
+            speak("التنفيذ مكتمل، اضغط على زر إعادة لبدء محاكاة جديدة.");
+        }
+    }
+
+    function confirmInput() {
+        valN1 = parseFloat(document.getElementById('inN1').value) || 0;
+        valN2 = parseFloat(document.getElementById('inN2').value) || 0;
+        
+        document.getElementById('memN1').innerText = valN1;
+        document.getElementById('memN2').innerText = valN2;
+        document.getElementById('inputModal').style.display = 'none';
+
+        let board = document.getElementById('boardText');
+        let log = "&nbsp;&nbsp; ➔ تم إدخال القيم بنجاح: Num1 = " + valN1 + ", Num2 = " + valN2 + " وتخزينها في الذاكرة الحية (RAM).<br>";
+        board.innerHTML += log;
+
+        speak("تم تأكيد وتثبيت القيم في الذاكرة الحية.");
+        step = 2;
+        nextStep();
+    }
+
+    // دوال صندوق حوار الأسئلة واختيار المتعدد التفاعلي مع إمكانية التكرار بقيم عشوائية جديدة
+    function openQuiz(type) {
+        currentQuizType = type;
+        loadQuiz(type);
+        document.getElementById('quizModal').style.display = 'flex';
+    }
+
+    function closeQuizModal() {
+        document.getElementById('quizModal').style.display = 'none';
+    }
+
+    function loadQuiz(type) {
+        document.getElementById('quizFeedback').innerText = "";
+        document.getElementById('quizRepeatBtn').style.display = "none";
+        let qText = document.getElementById('quizQuestionText');
+        let optContainer = document.getElementById('quizOptionsContainer');
+        optContainer.innerHTML = "";
+
+        if (type === 1) {
+            let r1 = Math.floor(Math.random() * 20) + 1;
+            let r2 = Math.floor(Math.random() * 20) + 1;
+            let correctSum = r1 + r2;
+            
+            let wrong1 = correctSum + 3;
+            let wrong2 = Math.abs(correctSum - 4);
+            if (wrong2 === correctSum) wrong2 += 2;
+
+            let choices = [correctSum, wrong1, wrong2].sort(() => Math.random() - 0.5);
+
+            qText.innerHTML = "إذا تم إدخال القيم التالية:<br><b>Num1 = " + r1 + " , Num2 = " + r2 + "</b><br>فما هي القيمة التي ستتخزن في المتغير <b>Sum</b> داخل الذاكرة الحية؟";
+
+            choices.forEach(val => {
+                let btn = document.createElement('button');
+                btn.className = 'quiz-option-btn';
+                btn.innerText = "القيمة: " + val;
+                btn.onclick = function() {
+                    let fb = document.getElementById('quizFeedback');
+                    if (val === correctSum) {
+                        fb.style.color = "#10b981";
+                        fb.innerText = "إجابة صحيحة وممتازة! 🎯 (" + r1 + " + " + r2 + " = " + correctSum + ")";
+                        speak("إجابة صحيحة وممتازة");
+                    } else {
+                        fb.style.color = "#ef4444";
+                        fb.innerText = "إجابة خاطئة. حاول مرة أخرى أو جرب سؤالاً بقيم جديدة.";
+                        speak("إجابة خاطئة");
+                    }
+                    document.getElementById('quizRepeatBtn').style.display = "block";
+                };
+                optContainer.appendChild(btn);
+            });
+        }
+        else if (type === 2) {
+            qText.innerHTML = "لو طلب منك تصميم خوارزمية ومخطط انسيابي لحساب <b>حاصل ضرب</b> عدديْن بدلاً من جمعهما، فكيف تصوغ خطوة المعالجة؟";
+            let options = [
+                { text: "Sum = Num1 * Num2", correct: true },
+                { text: "Sum = Num1 + Num2", correct: false },
+                { text: "Sum = Num1 / Num2", correct: false }
+            ].sort(() => Math.random() - 0.5);
+
+            options.forEach(opt => {
+                let btn = document.createElement('button');
+                btn.className = 'quiz-option-btn';
+                btn.innerText = opt.text;
+                btn.onclick = function() {
+                    let fb = document.getElementById('quizFeedback');
+                    if (opt.correct) {
+                        fb.style.color = "#10b981";
+                        fb.innerText = "رائع جداً! 👏 استخدام علامة النجمة (*) هو المعبر عن عملية الضرب.";
+                        speak("إجابة صحيحة ورائعة");
+                    } else {
+                        fb.style.color = "#ef4444";
+                        fb.innerText = "إجابة خاطئة. تذكر رمز عملية الضرب البرمجية.";
+                        speak("إجابة خاطئة");
+                    }
+                    document.getElementById('quizRepeatBtn').style.display = "block";
+                };
+                optContainer.appendChild(btn);
+            });
+        }
+        else if (type === 3) {
+            qText.innerHTML = "لماذا يُعتبر تنفيذ خطوة المعالجة (الجمع) <b>قبل</b> خطوة إدخال القيم خطأً برمجياً قاتلاً؟";
+            let options = [
+                { text: "لأن المتغيرات تكون خالية ولا توجد بها أرقام في الذاكرة", correct: true },
+                { text: "لأن الكمبيوتر لا يحب عمليات الجمع المبكرة", correct: false },
+                { text: "لأن شاشة العرض ستكون مغلقة", correct: false }
+            ].sort(() => Math.random() - 0.5);
+
+            options.forEach(opt => {
+                let btn = document.createElement('button');
+                btn.className = 'quiz-option-btn';
+                btn.innerText = opt.text;
+                btn.onclick = function() {
+                    let fb = document.getElementById('quizFeedback');
+                    if (opt.correct) {
+                        fb.style.color = "#10b981";
+                        fb.innerText = "تحليل منطقي ممتاز! 🌟 المعالج لن يجد بيانات ليجمعها.";
+                        speak("إجابة صحيحة وممتازة");
+                    } else {
+                        fb.style.color = "#ef4444";
+                        fb.innerText = "إجابة غير دقيقة. فكر في حالة الذاكرة الحية.";
+                        speak("إجابة خاطئة");
+                    }
+                    document.getElementById('quizRepeatBtn').style.display = "block";
+                };
+                optContainer.appendChild(btn);
+            });
+        }
+    }
+</script>
+
+</body>
+</html>
