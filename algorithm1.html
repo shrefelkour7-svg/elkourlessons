@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>خريطة وبنك أسئلة الخوارزميات - مدرسة اليرموك</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-dark: #1e293b;
+            --accent-gold: #fbbf24;
+            --accent-cyan: #38bdf8;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --text-light: #f8fafc;
+            --border-color: #334155;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            margin: 0;
+            padding: 12px;
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header-card {
+            background: var(--card-dark);
+            border: 2px solid var(--accent-gold);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+        }
+
+        .header-title {
+            color: var(--accent-gold);
+            font-size: 1.1rem;
+            margin: 0 0 4px 0;
+            font-weight: bold;
+        }
+
+        .header-sub {
+            color: var(--accent-cyan);
+            font-size: 0.85rem;
+            margin: 0;
+            font-weight: bold;
+        }
+
+        .map-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .main-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #2563eb, #1e3a8a);
+            border: 3px solid var(--accent-gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.3);
+        }
+
+        .nodes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 8px;
+            width: 100%;
+        }
+
+        .node-btn {
+            background: var(--card-dark);
+            border: 2px solid var(--accent-cyan);
+            border-radius: 8px;
+            padding: 10px 6px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.82rem;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+        }
+
+        .node-btn:hover {
+            background: #334155;
+            border-color: var(--accent-gold);
+        }
+
+        .node-btn.active {
+            background: var(--accent-gold);
+            color: #0f172a;
+            border-color: #ffffff;
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+        }
+
+        .content-display {
+            width: 100%;
+            background: var(--card-dark);
+            border: 1px solid var(--accent-gold);
+            border-radius: 10px;
+            padding: 14px;
+            box-sizing: border-box;
+            min-height: 110px;
+            margin-top: 5px;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+
+        .content-display.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .content-title {
+            color: var(--accent-gold);
+            font-size: 0.95rem;
+            margin-top: 0;
+            margin-bottom: 8px;
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 5px;
+        }
+
+        .content-list {
+            margin: 0;
+            padding-right: 18px;
+            font-size: 0.85rem;
+            color: #e2e8f0;
+            line-height: 1.5;
+        }
+
+        .content-list li {
+            margin-bottom: 4px;
+        }
+
+        /* تنسيق بنك الأسئلة */
+        .quiz-section {
+            background: var(--card-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .quiz-title {
+            color: var(--accent-gold);
+            font-size: 1.05rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 8px;
+            margin-top: 0;
+            margin-bottom: 12px;
+        }
+
+        .question-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+        }
+
+        .option-btn {
+            display: block;
+            width: 100%;
+            text-align: right;
+            background: #334155;
+            color: white;
+            border: 1px solid #475569;
+            padding: 8px 12px;
+            margin: 6px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .option-btn:hover {
+            background: #475569;
+        }
+
+        .feedback {
+            margin-top: 6px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <header class="header-card">
+            <h1 class="header-title">مدرسة اليرموك للتعليم الأساسي</h1>
+            <p class="header-sub">إعداد المعلم: الأستاذ الشريف علي الكور</p>
+        </header>
+
+        <!-- خريطة الخوارزمية التفاعلية -->
+        <div class="map-container">
+            
+            <div class="main-circle">الخوارزمية</div>
+
+            <div class="nodes-grid">
+                <div class="node-btn" onclick="showNode('def', this)">تعريف</div>
+                <div class="node-btn" onclick="showNode('origin', this)">أصل التسمية</div>
+                <div class="node-btn" onclick="showNode('features', this)">مميزات</div>
+                <div class="node-btn" onclick="showNode('usage', this)">طريقة الاستفادة منها</div>
+                <div class="node-btn" onclick="showNode('example', this)">مثال</div>
+            </div>
+
+            <!-- 1. التعريف -->
+            <div id="def" class="content-display">
+                <h3 class="content-title">التعريف</h3>
+                <ul class="content-list">
+                    <li>مجموعة من الخطوات الواضحة والمتسلسلة والمنطقية.</li>
+                    <li>مكتوبة بلغة الإنسان بشكل مفصل.</li>
+                    <li>تهدف للوصول إلى حل مسألة معينة.</li>
+                </ul>
+            </div>
+
+            <!-- 2. أصل التسمية -->
+            <div id="origin" class="content-display">
+                <h3 class="content-title">أصل التسمية</h3>
+                <ul class="content-list">
+                    <li>استحدث فكرتها العالم الرياضي أبو جعفر محمد بن موسى الخوارزمي في القرن التاسع الميلادي.</li>
+                    <li>يعد الخوارزمي مؤسس علم الجبر ومن أوائل علماء الرياضيات.</li>
+                    <li>اشتقّت كلمة خوارزمية مباشرة من اسمه.</li>
+                </ul>
+            </div>
+
+            <!-- 3. المميزات -->
+            <div id="features" class="content-display">
+                <h3 class="content-title">المميزات والخصائص</h3>
+                <ul class="content-list">
+                    <li>وضوح خطوات الحل ولا تعتمد لغة محددة.</li>
+                    <li>التنوع في أساليب المعالجة وعدم اعتمادها على أسلوب محدد.</li>
+                    <li>خطواتها سهلة وواضحة للجميع.</li>
+                    <li>تستخدم الخوارزمية في حل مسائل مشابهة.</li>
+                    <li>سهولة اكتشاف وتصحيح الأخطاء.</li>
+                    <li>تعتبر توثيقاً للحل.</li>
+                </ul>
+            </div>
+
+            <!-- 4. طريقة الاستفادة منها -->
+            <div id="usage" class="content-display">
+                <h3 class="content-title">طريقة الاستفادة منها (الأهمية)</h3>
+                <ul class="content-list">
+                    <li>توفر الكثير من الوقت في حل المسألة.</li>
+                    <li>ترسم الحل بشكل محدد وواضح.</li>
+                    <li>تصبح عملية الترجمة إلى برنامج أسهل بكثير.</li>
+                    <li>تحديد الأفضلية بالاعتماد على عامل الوقت.</li>
+                </ul>
+            </div>
+
+            <!-- 5. المثال والتحليل -->
+            <div id="example" class="content-display">
+                <h3 class="content-title">مثال: حساب مساحة مربع (مساحة المربع = الطول × الطول)</h3>
+                
+                <p style="color:var(--accent-cyan); margin:0 0 3px 0; font-weight:bold;">1. تحليل المسألة:</p>
+                <ul class="content-list">
+                    <li>المدخلات: طول الضلع A.</li>
+                    <li>المعالجة: مساحة المربع = A ضرب A.</li>
+                    <li>المخرجات: طباعة مساحة المربع وطول المربع.</li>
+                </ul>
+
+                <p style="color:var(--accent-green); margin:6px 0 3px 0; font-weight:bold;">2. كتابة الخوارزمية:</p>
+                <ol class="content-list">
+                    <li>إبدأ.</li>
+                    <li>ادخل طول المربع A.</li>
+                    <li>احسب مساحة المربع = A ضرب A.</li>
+                    <li>اطبع (مساحة المربع، طول المربع).</li>
+                    <li>توقف.</li>
+                </ol>
+            </div>
+
+        </div>
+
+        <!-- بنك الأسئلة التقويمي -->
+        <div class="quiz-section">
+            <h2 class="quiz-title">📝 بنك الأسئلة التقويمي (اختر الإجابة الصحيحة)</h2>
+
+            <div class="question-card">
+                <p><b>س1: تُعرف الخوارزمية بأنها مجموعة من الخطوات الواضحة والمتسلسلة والمنطقية المكتوبة بـ:</b></p>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'q1')">أ) لغة الآلة فقط</button>
+                <button class="option-btn" onclick="checkAnswer(this, true, 'q1')">ب) لغة الإنسان بشكل مفصل</button>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'q1')">ج) لغة البرمجة بايثون</button>
+                <div id="q1-feed" class="feedback"></div>
+            </div>
+
+            <div class="question-card">
+                <p><b>س2: اشتقّت كلمة خوارزمية (Algorithm) من اسم العالم:</b></p>
+                <button class="option-btn" onclick="checkAnswer(this, true, 'q2')">أ) أبو جعفر محمد بن موسى الخوارزمي</button>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'q2')">ب) الحسن بن الهيثم</button>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'q2')">ج) جابر بن حيان</button>
+                <div id="q2-feed" class="feedback"></div>
+            </div>
+
+            <div class="question-card">
+                <p><b>س3: العامل الأساسي الذي يدخل في تحديد أفضلية الخوارزمية للوصول إلى الحل هو:</b></p>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'q3')">أ) نوع الشاشة المستعملة</button>
+                <button class="option-btn" onclick="checkAnswer(this, true, 'q3')">ب) عامل الوقت</button>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'q3')">ج) لون الجهاز</button>
+                <div id="q3-feed" class="feedback"></div>
+            </div>
+
+            <div class="question-card">
+                <p><b>س4: من خصائص الخوارزمية الواردة بالكتاب:</b></p>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'q4')">أ) اعتمادها الصارم على لغة محددة</button>
+                <button class="option-btn" onclick="checkAnswer(this, true, 'q4')">ب) وضوح خطوات الحل وتعتبر توثيقاً للحل</button>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'q4')">ج) صعوبة اكتشاف الأخطاء بها</button>
+                <div id="q4-feed" class="feedback"></div>
+            </div>
+
+            <div class="question-card">
+                <p><b>س5: في مثال مساحة المربع، خطوة "ادخل طول المربع A" تعبر عن مرحلة:</b></p>
+                <button class="option-btn" onclick="checkAnswer(this, true, 'q5')">أ) تحديد المدخلات</button>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'q5')">ب) تحديد المخرجات</button>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'q5')">ج) توقف البرنامج</button>
+                <div id="q5-feed" class="feedback"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function showNode(nodeId, btnElement) {
+            const displays = document.querySelectorAll('.content-display');
+            displays.forEach(d => d.classList.remove('active'));
+
+            const buttons = document.querySelectorAll('.node-btn');
+            buttons.forEach(b => b.classList.remove('active'));
+
+            document.getElementById(nodeId).classList.add('active');
+            btnElement.classList.add('active');
+        }
+
+        function checkAnswer(btn, isCorrect, qId) {
+            let parent = btn.parentElement;
+            let btns = parent.querySelectorAll('.option-btn');
+            btns.forEach(b => b.style.opacity = '0.6');
+            
+            let feed = document.getElementById(qId + '-feed');
+            feed.style.display = 'block';
+
+            if(isCorrect) {
+                btn.style.background = '#10b981';
+                btn.style.opacity = '1';
+                feed.style.background = 'rgba(16, 185, 129, 0.2)';
+                feed.style.color = '#34d399';
+                feed.innerHTML = '✔ إجابة صحيحة!';
+            } else {
+                btn.style.background = '#ef4444';
+                btn.style.opacity = '1';
+                feed.style.background = 'rgba(239, 68, 68, 0.2)';
+                feed.style.color = '#f87171';
+                feed.innerHTML = '❌ إجابة خاطئة!';
+            }
+        }
+    </script>
+
+</body>
+</html>
