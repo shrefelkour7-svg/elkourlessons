@@ -3,139 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة دروس البرمجة وتقنية المعلومات</title>
+    <title>منصة مدرسة اليرموك للتعليم الأساسي - الحاسوب وتقنية المعلومات</title>
     <style>
         body {
             font-family: Tahoma, sans-serif;
-            background-color: #f4f7f6;
-            color: #333;
+            background-color: #121212;
+            color: #e0e0e0;
             margin: 0;
             padding: 20px;
             direction: rtl;
             text-align: right;
         }
         .container {
-            max-width: 850px;
+            max-width: 900px;
             margin: 0 auto;
-            background: #ffffff;
+            background: #1e1e1e;
             padding: 30px;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+        }
+        .school-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #0366d6;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            flex-wrap: nowrap;
+            gap: 15px;
+        }
+        .header-text {
+            flex: 1;
+        }
+        .header-text h2 {
+            margin: 0 0 5px 0;
+            color: #58a6ff;
+            font-size: 20px;
+        }
+        .header-text p {
+            margin: 0;
+            color: #8b949e;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .profile-avatar {
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+            border: 2px solid #58a6ff;
+            background-color: #0d1117;
+            color: #58a6ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: bold;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
         h1 {
-            color: #0366d6;
+            color: #58a6ff;
             text-align: center;
             margin-bottom: 10px;
+            font-size: 24px;
         }
         .subtitle {
             text-align: center;
-            color: #666;
-            margin-bottom: 30px;
+            color: #8b949e;
+            margin-bottom: 35px;
             font-size: 16px;
         }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
         .lesson-card {
-            background: #f9fbfb;
-            border: 1px solid #e1e4e8;
-            border-radius: 8px;
-            padding: 15px 20px;
-            margin-bottom: 15px;
+            background: #252526;
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 20px;
             display: flex;
+            flex-direction: column;
             justify-content: space-between;
-            align-items: center;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s, border-color 0.2s;
         }
         .lesson-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            border-color: #0366d6;
+            transform: translateY(-3px);
+            border-color: #58a6ff;
         }
         .lesson-info h3 {
-            margin: 0 0 5px 0;
-            color: #24292e;
+            margin: 0 0 10px 0;
+            color: #ffffff;
             font-size: 18px;
         }
         .lesson-info p {
-            margin: 0;
-            color: #586069;
+            margin: 0 0 20px 0;
+            color: #8b949e;
             font-size: 14px;
+            line-height: 1.5;
         }
         .lesson-btn {
-            background-color: #2ea44f;
+            background-color: #238636;
             color: white;
-            padding: 10px 20px;
+            padding: 10px 15px;
             border-radius: 6px;
             text-decoration: none;
             font-weight: bold;
             font-size: 14px;
-            white-space: nowrap;
+            text-align: center;
+            transition: background-color 0.2s;
         }
         .lesson-btn:hover {
-            background-color: #2c974b;
+            background-color: #2ea043;
         }
         footer {
             text-align: center;
-            margin-top: 40px;
-            color: #888;
+            margin-top: 45px;
+            color: #8b949e;
             font-size: 13px;
+            border-top: 1px solid #333;
+            padding-top: 20px;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>دروس البرمجة وتقنية المعلومات</h1>
-        <p class="subtitle">اختر الدرس المطلوب للاطلاع عليه واستعراضه مباشرة</p>
-
-        <!-- الملف الأول -->
-        <div class="lesson-card">
-            <div class="lesson-info">
-                <h3>إدخال عددين وطباعة حاصل المجموع</h3>
-                <p>تطبيق أساسي لجمع قيمتين ومعالجة المدخلات.</p>
+        <!-- رأس الصفحة (المدرسة، بيانات المعلم، والأيقونة التعريفية المضمونة) -->
+        <div class="school-header">
+            <div class="header-text">
+                <h2>مدرسة اليرموك للتعليم الأساسي</h2>
+                <p>مادة الحاسوب وتقنية المعلومات<br>إعداد وتنسيق: الأستاذ شريف الكور</p>
             </div>
-            <a href="sumx1x2.html" class="lesson-btn" target="_blank">فتح الدرس</a>
+            <div class="profile-avatar">
+                ش
+            </div>
         </div>
 
-        <!-- الملف الثاني -->
-        <div class="lesson-card">
-            <div class="lesson-info">
-                <h3>طباعة القيمة الأصغر من قيمتين</h3>
-                <p>مقارنة عددين واستخراج وطباعة القيمة الأقل.</p>
+        <h1>بوابة التعلم الرقمي التفاعلي</h1>
+        <p class="subtitle">اختر القسم أو الدرس المطلوب للانتقال الفوري وتجربة الأنشطة التعليمية</p>
+
+        <div class="grid-container">
+            <!-- القسم 1 -->
+            <div class="lesson-card">
+                <div class="lesson-info">
+                    <h3>خطوات حل المشكلة</h3>
+                    <p>التعرف على المنهجية العلمية والخطوات الأساسية لتحليل وحل المشكلات البرمجية.</p>
+                </div>
+                <a href="https://shrefelkour7-svg.github.io/elkourlessons/sloution.html" class="lesson-btn" target="_blank">دخول القسم</a>
             </div>
-            <a href="maxab.html" class="lesson-btn" target="_blank">فتح الدرس</a>
+
+            <!-- القسم 2 -->
+            <div class="lesson-card">
+                <div class="lesson-info">
+                    <h3>مفهوم الخوارزميات</h3>
+                    <p>فهم الأساسيات النظرية ومفهوم بناء الخوارزميات البرمجية بوضوح.</p>
+                </div>
+                <a href="https://shrefelkour7-svg.github.io/elkourlessons/algorithm1.html" class="lesson-btn" target="_blank">دخول القسم</a>
+            </div>
+
+            <!-- القسم 3 -->
+            <div class="lesson-card">
+                <div class="lesson-info">
+                    <h3>مفهوم المخطط الانسيابي (التدفق)</h3>
+                    <p>استعراض الأشكال الهندسية ومدلولاتها لتنفيذ خطوات حل المشكلة.</p>
+                </div>
+                <a href="https://shrefelkour7-svg.github.io/elkourlessons/flowchartintrodtion.html" class="lesson-btn" target="_blank">دخول القسم</a>
+            </div>
+
+            <!-- القسم 4 -->
+            <div class="lesson-card">
+                <div class="lesson-info">
+                    <h3>إنشاء خوارزميات حل مشكلة</h3>
+                    <p>تطبيق عملي على صياغة وكتبة خوارزميات صحيحة ومضبوطة.</p>
+                </div>
+                <a href="https://shrefelkour7-svg.github.io/elkourlessons/algo.html" class="lesson-btn" target="_blank">دخول القسم</a>
+            </div>
+
+            <!-- القسم 5 -->
+            <div class="lesson-card">
+                <div class="lesson-info">
+                    <h3>إنشاء مخططات بالسحب والإفلات</h3>
+                    <p>أنشطة تفاعلية لتركيب المخططات الانسيابية عبر تقنية السحب والإفلات.</p>
+                </div>
+                <a href="https://shrefelkour7-svg.github.io/elkourlessons/flow.html" class="lesson-btn" target="_blank">دخول القسم</a>
+            </div>
+
+            <!-- القسم 6 -->
+            <div class="lesson-card">
+                <div class="lesson-info">
+                    <h3>تتبع مخططات انسيابية خطوة بخطوة</h3>
+                    <p>محاكاة تفاعلية لتتبع قيم المتغيرات ومسارات التنفيذ خطوة بخطوة.</p>
+                </div>
+                <a href="https://shrefelkour7-svg.github.io/elkourlessons/track.html" class="lesson-btn" target="_blank">دخول القسم</a>
+            </div>
         </div>
 
-        <!-- الملف الثالث -->
-        <div class="lesson-card">
-            <div class="lesson-info">
-                <h3>طباعة ما إذا كان العدد زوجياً أو فردياً</h3>
-                <p>استخدام شروط الفحص لتحديد نوع العدد.</p>
-            </div>
-            <a href="printoldoreven.html" class="lesson-btn" target="_blank">فتح الدرس</a>
-        </div>
-
-        <!-- الملف الرابع -->
-        <div class="lesson-card">
-            <div class="lesson-info">
-                <h3>احتساب قيمة y = 2/x بدون اختبار قيمة x</h3>
-                <p>دراسة مسار العمليات الحسابية وتجنب القسمة على الصفر.</p>
-            </div>
-            <a href="yequal2divex.html" class="lesson-btn" target="_blank">فتح الدرس</a>
-        </div>
-
-        <!-- الملف الخامس -->
-        <div class="lesson-card">
-            <div class="lesson-info">
-                <h3>احتساب قيمة y = 2/x مع اختبار قيمة x</h3>
-                <p>تضمين شروط الفحص المسبق لتجنب أخطاء القسمة على الصفر.</p>
-            </div>
-            <a href="ydivex2new.html" class="lesson-btn" target="_blank">فتح الدرس</a>
-        </div>
+        <footer>
+            جميع الحقوق محفوظة © مدرسة اليرموك للتعليم الأساسي — الأستاذ شريف الكور 2026
+        </footer>
 
     </div>
-
-    <footer>
-        جميع الحقوق محفوظة © الأستاذ شريف الكور
-    </footer>
 
 </body>
 </html>
