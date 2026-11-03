@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تتبع تنفيذ الخوارزميات والمخططات خطوة بخطوة</title>
+    <style>
+        body {
+            font-family: Tahoma, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+            direction: rtl;
+            text-align: right;
+        }
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            background: #1e1e1e;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+        }
+        .school-header {
+            text-align: center;
+            border-bottom: 2px solid #0366d6;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        .school-header h2 {
+            margin: 0 0 5px 0;
+            color: #58a6ff;
+            font-size: 20px;
+        }
+        .school-header p {
+            margin: 0;
+            color: #8b949e;
+            font-size: 14px;
+        }
+        h1 {
+            color: #58a6ff;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 22px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #8b949e;
+            margin-bottom: 30px;
+            font-size: 15px;
+        }
+        .lesson-card {
+            background: #252526;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .lesson-card:hover {
+            transform: translateY(-2px);
+            border-color: #58a6ff;
+        }
+        .lesson-info h3 {
+            margin: 0 0 5px 0;
+            color: #ffffff;
+            font-size: 17px;
+        }
+        .lesson-info p {
+            margin: 0;
+            color: #8b949e;
+            font-size: 13px;
+        }
+        .lesson-btn {
+            background-color: #238636;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            white-space: nowrap;
+            transition: background-color 0.2s;
+        }
+        .lesson-btn:hover {
+            background-color: #2ea043;
+        }
+        .back-btn {
+            display: inline-block;
+            margin-top: 25px;
+            background-color: #333;
+            color: #e0e0e0;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-btn:hover {
+            background-color: #444;
+        }
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #8b949e;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- رأس الصفحة (المدرسة ومدرس المادة) -->
+        <div class="school-header">
+            <h2>مدرسة الحاسوب وتقنية المعلومات</h2>
+            <p>إعداد وتنسيق: الأستاذ شريف الكور</p>
+        </div>
+
+        <h1>تتبع تنفيذ الخوارزميات والمخططات</h1>
+        <p class="subtitle">اختر الدرس المطلوب لاستعراض الخطوات والتنفيذ التفصيلي</p>
+
+        <!-- الدرس الأول -->
+        <div class="lesson-card">
+            <div class="lesson-info">
+                <h3>ترتيب خطوات خوارزمية جمع عددين</h3>
+                <p>إدخال عددين وطباعة حاصل الجمع.</p>
+            </div>
+            <a href="https://shrefelkour7-svg.github.io/elkourlessons/algsumxy.html" class="lesson-btn" target="_blank">فتح الدرس</a>
+        </div>
+
+        <!-- الدرس الثاني -->
+        <div class="lesson-card">
+            <div class="lesson-info">
+                <h3>خوارزمية درجة الطالب (ناجح / راسب)</h3>
+                <p>التحقق من درجات الطلاب واتخاذ القرار بناءً عليها.</p>
+            </div>
+            <a href="https://shrefelkour7-svg.github.io/elkourlessons/algpassorfail.html" class="lesson-btn" target="_blank">فتح الدرس</a>
+        </div>
+
+        <!-- الدرس الثالث -->
+        <div class="lesson-card">
+            <div class="lesson-info">
+                <h3>خوارزمية طباعة القيمة الأكبر</h3>
+                <p>مقارنة قيمتين واستخراج الأكبر بينهما.</p>
+            </div>
+            <a href="https://shrefelkour7-svg.github.io/elkourlessons/algmaxaorb.html" class="lesson-btn" target="_blank">فتح الدرس</a>
+        </div>
+
+        <!-- الدرس الرابع -->
+        <div class="lesson-card">
+            <div class="lesson-info">
+                <h3>خوارزمية التحقق من كلمة المرور</h3>
+                <p>إدخال كلمة المرور والتحقق من صحتها.</p>
+            </div>
+            <a href="https://shrefelkour7-svg.github.io/elkourlessons/algpass.html" class="lesson-btn" target="_blank">فتح الدرس</a>
+        </div>
+
+        <!-- الدرس الخامس -->
+        <div class="lesson-card">
+            <div class="lesson-info">
+                <h3>خوارزمية فحص العدد (موجب / سالب)</h3>
+                <p>تحديد طبيعة المدخلات العددية.</p>
+            </div>
+            <a href="https://shrefelkour7-svg.github.io/elkourlessons/algposorneg.html" class="lesson-btn" target="_blank">فتح الدرس</a>
+        </div>
+
+        <!-- الدرس السادس -->
+        <div class="lesson-card">
+            <div class="lesson-info">
+                <h3>خوارزمية طباعة الأعداد من 1 إلى 5</h3>
+                <p>استخدام الحلقات والتسلسل لطباعة مدى عددي.</p>
+            </div>
+            <a href="https://shrefelkour7-svg.github.io/elkourlessons/algprint1to5.html" class="lesson-btn" target="_blank">فتح الدرس</a>
+        </div>
+
+        <div style="text-align: center;">
+            <a href="index.html" class="back-btn">العودة إلى الصفحة الرئيسية للمنصة</a>
+        </div>
+
+    </div>
+
+    <footer>
+        جميع الحقوق محفوظة © الأستاذ شريف الكور 2026
+    </footer>
+
+</body>
+</html>
