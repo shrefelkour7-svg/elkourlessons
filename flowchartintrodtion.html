@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>خريطة مخططات سير العمليات - مدرسة اليرموك</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-dark: #1e293b;
+            --accent-gold: #fbbf24;
+            --accent-cyan: #38bdf8;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --text-light: #f8fafc;
+            --border-color: #334155;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            margin: 0;
+            padding: 12px;
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header-card {
+            background: var(--card-dark);
+            border: 2px solid var(--accent-gold);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+        }
+
+        .header-title {
+            color: var(--accent-gold);
+            font-size: 1.1rem;
+            margin: 0 0 4px 0;
+            font-weight: bold;
+        }
+
+        .header-sub {
+            color: var(--accent-cyan);
+            font-size: 0.85rem;
+            margin: 0;
+            font-weight: bold;
+        }
+
+        .map-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .main-circle {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #2563eb, #1e3a8a);
+            border: 3px solid var(--accent-gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #ffffff;
+            text-align: center;
+            padding: 10px;
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.3);
+        }
+
+        .nodes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 8px;
+            width: 100%;
+        }
+
+        .node-btn {
+            background: var(--card-dark);
+            border: 2px solid var(--accent-cyan);
+            border-radius: 8px;
+            padding: 10px 6px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.8rem;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+        }
+
+        .node-btn:hover {
+            background: #334155;
+            border-color: var(--accent-gold);
+        }
+
+        .node-btn.active {
+            background: var(--accent-gold);
+            color: #0f172a;
+            border-color: #ffffff;
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+        }
+
+        .content-display {
+            width: 100%;
+            background: var(--card-dark);
+            border: 1px solid var(--accent-gold);
+            border-radius: 10px;
+            padding: 14px;
+            box-sizing: border-box;
+            min-height: 110px;
+            margin-top: 5px;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+
+        .content-display.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .content-title {
+            color: var(--accent-gold);
+            font-size: 0.95rem;
+            margin-top: 0;
+            margin-bottom: 8px;
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 5px;
+        }
+
+        .content-list {
+            margin: 0;
+            padding-right: 18px;
+            font-size: 0.85rem;
+            color: #e2e8f0;
+            line-height: 1.5;
+        }
+
+        .content-list li {
+            margin-bottom: 6px;
+        }
+
+        .shapes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .flow-shape {
+            background: #0f172a;
+            border: 2px solid var(--accent-cyan);
+            padding: 10px;
+            text-align: center;
+            font-size: 0.85rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            border-radius: 8px;
+        }
+
+        .shape-oval {
+            border-radius: 50px;
+            background: rgba(16, 185, 129, 0.15);
+            border-color: var(--accent-green);
+        }
+
+        .shape-parallelogram {
+            transform: skew(-10deg);
+            background: rgba(56, 189, 248, 0.15);
+            border-color: var(--accent-cyan);
+        }
+
+        .shape-rectangle {
+            border-radius: 4px;
+            background: rgba(251, 191, 36, 0.15);
+            border-color: var(--accent-gold);
+        }
+
+        .quiz-section {
+            background: var(--card-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .quiz-title {
+            color: var(--accent-gold);
+            font-size: 1.05rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 8px;
+            margin-top: 0;
+            margin-bottom: 12px;
+        }
+
+        .question-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+        }
+
+        .option-btn {
+            display: block;
+            width: 100%;
+            text-align: right;
+            background: #334155;
+            color: white;
+            border: 1px solid #475569;
+            padding: 8px 12px;
+            margin: 6px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .option-btn:hover {
+            background: #475569;
+        }
+
+        .feedback {
+            margin-top: 6px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <header class="header-card">
+            <h1 class="header-title">مدرسة اليرموك للتعليم الأساسي</h1>
+            <p class="header-sub">إعداد المعلم: الأستاذ الشريف علي الكور</p>
+        </header>
+
+        <div class="map-container">
+            
+            <div class="main-circle">مخططات سير العمليات (خرائط التدفق)</div>
+
+            <div class="nodes-grid">
+                <div class="node-btn" onclick="showNode('def', this)">التعريف والأهمية</div>
+                <div class="node-btn" onclick="showNode('symbols', this)">الأشكال الهندسية ورموزها</div>
+                <div class="node-btn" onclick="showNode('benefits', this)">فوائد المخططات</div>
+                <div class="node-btn" onclick="showNode('rules', this)">إرشادات الرسم</div>
+                <div class="node-btn" onclick="showNode('types', this)">أنواع المخططات</div>
+            </div>
+
+            <!-- 1. التعريف والأهمية -->
+            <div id="def" class="content-display">
+                <h3 class="content-title">التعريف والأهمية</h3>
+                <ul class="content-list">
+                    <li>بعد تمثيل الخوارزمية باستخدام الرسم، تُعرف بمخططات سير العمليات.</li>
+                    <li>تعتبر أسهل وأكثر وضوحاً لتوضيح سير العمليات.</li>
+                    <li>تمكن تتبع المنطق لحل المشكلة بسهولة أكبر عن طريق التمثيل شبه الرمزي.</li>
+                    <li>تحدد مخططات سير العمليات آلية معينة في الرسم باستخدام أشكال هندسية.</li>
+                </ul>
+            </div>
+
+            <!-- 2. رموز العمليات (أشكال هندسية بصرية) -->
+            <div id="symbols" class="content-display">
+                <h3 class="content-title">الأشكال الهندسية ورموز العمليات</h3>
+                <p style="font-size:0.85rem; color:var(--accent-cyan); margin-bottom:10px;">تستخدم مخططات سير العمليات أشكالاً هندسية خاصة للتعبير عن خطوات الحل:</p>
+                
+                <div class="shapes-grid">
+                    <div class="flow-shape shape-oval">
+                        <b>الشكل البيضاوي</b>
+                        <p style="margin:4px 0 0 0;">بداية أو نهاية مخطط سير العمليات (مثل: إبدأ / توقف)</p>
+                    </div>
+
+                    <div class="flow-shape shape-parallelogram">
+                        <b>متوازي الأضلاع</b>
+                        <p style="margin:4px 0 0 0;">إدخال البيانات أو إخراجها / طباعة (مثل: اقرأ A / اطبع Z)</p>
+                    </div>
+
+                    <div class="flow-shape shape-rectangle">
+                        <b>المستطيل</b>
+                        <p style="margin:4px 0 0 0;">عملية معالجة أو عمليات حسابية (مثل: E = C + B)</p>
+                    </div>
+
+                    <div class="flow-shape" style="border-color:var(--accent-red); background:rgba(239, 68, 68, 0.15);">
+                        <b>المعين (اتخاذ قرار)</b>
+                        <p style="margin:4px 0 0 0;">فحص العلاقات والقرارات بشرط (مثل: هل C أكبر من 5؟ نعم / لا)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. فوائد المخططات -->
+            <div id="benefits" class="content-display">
+                <h3 class="content-title">فوائد مخططات سير العمليات</h3>
+                <ul class="content-list">
+                    <li>أ) توضيح التسلسل المنطقي لخطوات حل المسألة وإعطاء صورة كاملة وواضحة.</li>
+                    <li>ب) إعطاء المستخدم فرصة لتجربة أكثر من طريقة واحدة لحل مسألة معينة.</li>
+                    <li>ج) تساعد على تجنب الأخطاء والتخلص من التفاصيل غير الضرورية.</li>
+                    <li>د) تستخدم مرجعاً خاصاً لحفظ وثائق المسألة.</li>
+                    <li>هـ - و) تساعد على تعديل البرنامج بسهولة واكتشاف الأخطاء المنطقية.</li>
+                </ul>
+            </div>
+
+            <!-- 4. إرشادات الرسم العامة -->
+            <div id="rules" class="content-display">
+                <h3 class="content-title">إرشادات عامة لرسم مخططات السير</h3>
+                <ul class="content-list">
+                    <li>الأسلوب الشائع لرسم مخططات سير العمليات يبدأ من الأعلى إلى الأسفل، ومن اليسار إلى اليمين.</li>
+                    <li>يبدأ عادة الرسم برمز البداية وينتهي برمز النهاية.</li>
+                    <li>أ) ابدأ برسم مخطط سير العمليات من أعلى الصفحة.</li>
+                    <li>ب) رقم كل صفحة من صفحات مخطط سير العمليات في تسلسل معين واكتب عنوان المسألة والتاريخ واسمك على كل صفحة.</li>
+                    <li>ج) صف كل خطوة لغوياً بحيث يمكن فهمها ومتابعة جميع الخطوات بسهولة.</li>
+                </ul>
+            </div>
+
+            <!-- 5. أنواع المخططات -->
+            <div id="types" class="content-display">
+                <h3 class="content-title">أنواع مخططات سير العمليات</h3>
+                <p style="margin: 0 0 6px 0; font-size: 0.85rem; color: var(--accent-cyan);">هناك ثلاثة أنواع رئيسية لمخططات سير العمليات:</p>
+                <ol class="content-list">
+                    <li>مخططات سير العمليات التتابعية.</li>
+                    <li>مخططات سير العمليات ذات التفرع.</li>
+                    <li>مخططات سير العمليات ذات التكرار.</li>
+                </ol>
+            </div>
+
+        </div>
+
+        <div class="quiz-section">
+            <h2 class="quiz-title">بنك أسئلة تقويمي (المخططات وانسياب العمليات)</h2>
+
+            <div class="question-card">
+                <p><b>س1: يُستخدم الشكل الهندسي (متوازي الأضلاع) في مخططات سير العمليات للتعبير عن:</b></p>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'q1')">أ) اتخاذ القرار</button>
+                <button class="option-btn" onclick="checkAnswer(this, true, 'q1')">ب) إدخال البيانات أو إخراجها (طباعة)</button>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'q1')">ج) البداية أو النهاية</button>
+                <div id="q1-feed" class="feedback"></div>
+            </div>
+
+            <div class="question-card">
+                <p><b>س2: الشكل الهندسي الذي يُستخدم لعمليات المعالجة والعمليات الحسابية هو:</b></p>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'q2')">أ) المعين</button>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'q2')">ب) الدائرة</button>
+                <button class="option-btn" onclick="checkAnswer(this, true, 'q2')">ج) المستطيل</button>
+                <div id="q2-feed" class="feedback"></div>
+            </div>
+
+            <div class="question-card">
+                <p><b>س3: يُستخدم شكل (المعين) في مخططات سير العمليات لغرض:</b></p>
+                <button class="option-btn" onclick="checkAnswer(this, true, 'q3')">أ) اتخاذ القرار وفحص العلاقات</button>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'q3')">ب) بداية أو نهاية البرنامج</button>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'q3')">ج) طباعة النتائج</button>
+                <div id="q3-feed" class="feedback"></div>
+            </div>
+
+            <div class="question-card">
+                <p><b>س4: من فوائد مخططات سير العمليات:</b></p>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'q4')">أ) إبطاء عمل البرنامج وتأخير تنفيذه</button>
+                <button class="option-btn" onclick="checkAnswer(this, true, 'q4')">ب) توضيح التسلسل المنطقي لحل المسألة وتجنب الأخطاء</button>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'q4')">ج) زيادة تعقيد فهم البرنامج</button>
+                <div id="q4-feed" class="feedback"></div>
+            </div>
+
+            <div class="question-card">
+                <p><b>س5: كم عدد الأنواع الرئيسية لمخططات سير العمليات؟</b></p>
+                <button class="option-btn" onclick="checkAnswer(this, true, 'q5')">أ) ثلاثة أنواع رئيسية</button>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'q5')">ب) نوع واحد فقط</button>
+                <button class="option-btn" onclick="checkAnswer(this, false, 'q5')">ج) خمسة أنواع</button>
+                <div id="q5-feed" class="feedback"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function showNode(nodeId, btnElement) {
+            const displays = document.querySelectorAll('.content-display');
+            displays.forEach(d => d.classList.remove('active'));
+
+            const buttons = document.querySelectorAll('.node-btn');
+            buttons.forEach(b => b.classList.remove('active'));
+
+            document.getElementById(nodeId).classList.add('active');
+            btnElement.classList.add('active');
+        }
+
+        function checkAnswer(btn, isCorrect, qId) {
+            let parent = btn.parentElement;
+            let btns = parent.querySelectorAll('.option-btn');
+            btns.forEach(b => b.style.opacity = '0.6');
+            
+            let feed = document.getElementById(qId + '-feed');
+            feed.style.display = 'block';
+
+            if(isCorrect) {
+                btn.style.background = '#10b981';
+                btn.style.opacity = '1';
+                feed.style.background = 'rgba(16, 185, 129, 0.2)';
+                feed.style.color = '#34d399';
+                feed.innerHTML = '✔ إجابة صحيحة!';
+            } else {
+                btn.style.background = '#ef4444';
+                btn.style.opacity = '1';
+                feed.style.background = 'rgba(239, 68, 68, 0.2)';
+                feed.style.color = '#f87171';
+                feed.innerHTML = '❌ إجابة خاطئة!';
+            }
+        }
+    </script>
+
+</body>
+</html>
