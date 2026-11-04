@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - مدرسة اليرموك</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; direction: rtl; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { color: #1e3a8a; text-align: center; margin-bottom: 20px; }
+        .login-box { text-align: center; padding: 40px 20px; }
+        input[type="password"], input[type="text"], select { padding: 10px 15px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; margin: 5px; }
+        button { background-color: #1e3a8a; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #1d4ed8; }
+        .controls { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: center; }
+        th { background-color: #1e3a8a; color: white; }
+        tr:nth-child(even) { background-color: #f8fafc; }
+        .badge { background-color: #e0e7ff; color: #3730a3; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
+        .error { color: red; margin-top: 10px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- شاشة تسجيل الدخول -->
+    <div id="loginSection" class="login-box">
+        <h2>لوحة إدارية - مادة الحاسوب</h2>
+        <p>الرجاء إدخال كلمة المرور للوصول لقائمة الطلاب</p>
+        <input type="password" id="passwordInput" placeholder="كلمة المرور">
+        <button onclick="checkPassword()">دخول</button>
+        <div id="loginError" class="error"></div>
+    </div>
+
+    <!-- شاشة عرض بيانات الطلاب -->
+    <div id="mainSection" class="hidden">
+        <h2>قائمة طلاب مدرسة اليرموك (الصف التاسع)</h2>
+        
+        <div class="controls">
+            <input type="text" id="searchInput" onkeyup="filterStudents()" placeholder="ابحث باسم الطالب...">
+            <select id="classFilter" onchange="filterStudents()">
+                <option value="all">جميع الفصول</option>
+            </select>
+        </div>
+
+        <div id="loadingMessage">جاري تحميل بيانات الطلاب من GitHub...</div>
+
+        <table id="studentsTable" class="hidden">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>اسم الطالب</th>
+                    <th>الفصل</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const CSV_URL = 'https://raw.githubusercontent.com/shrefelkour7-svg/elkourlessons/main/students.csv';
+
+    let allStudents = [];
+
+    function checkPassword() {
+        const pass = document.getElementById('passwordInput').value;
+        if (pass === 'yarmouk2026') {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('mainSection').classList.remove('hidden');
+            loadCSVData();
+        } else {
+            document.getElementById('loginError').innerText = 'كلمة المرور غير صحيحة!';
+        }
+    }
+
+    function loadCSVData() {
+        fetch(CSV_URL)
+            .then(response => {
+                if (!response.ok) throw new Error('تعذر الوصول لملف البيانات');
+                return response.arrayBuffer();
+            })
+            .then(buffer => {
+                // استخدام ترميز ويندوز العربي ليتوافق مع الملف المحفوظ من الإكسل مباشرة
+                const decoder = new TextDecoder('windows-1256');
+                const data = decoder.decode(buffer);
+                parseCSV(data);
+                document.getElementById('loadingMessage').classList.add('hidden');
+                document.getElementById('studentsTable').classList.remove('hidden');
+            })
+            .catch(err => {
+                document.getElementById('loadingMessage').innerText = 'خطأ في جلب البيانات. تأكد من اتصال الإنترنت وصحة رابط الملف على جيت هب.';
+            });
+    }
+
+    function parseCSV(csvText) {
+        const lines = csvText.trim().split('\n');
+        allStudents = [];
+        const classes = new Set();
+
+        lines.forEach((line, index) => {
+            if (!line.trim()) return;
+
+            const columns = line.split(',');
+            const name = columns[0] ? columns[0].trim().replace(/["\r]/g, '') : '';
+            const studentClass = columns[1] ? columns[1].trim().replace(/["\r]/g, '') : 'غير محدد';
+
+            if (name) {
+                allStudents.push({ name: name, class: studentClass });
+                classes.add(studentClass);
+            }
+        });
+
+        const classFilter = document.getElementById('classFilter');
+        classes.forEach(c => {
+            const option = document.createElement('option');
+            option.value = c;
+            option.textContent = `فصل: ${c}`;
+            classFilter.appendChild(option);
+        });
+
+        renderTable(allStudents);
+    }
+
+    function renderTable(students) {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+
+        students.forEach((student, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${student.name}</td>
+                <td><span class="badge">${student.class}</span></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function filterStudents() {
+        const searchVal = document.getElementById('searchInput').value.toLowerCase();
+        const selectedClass = document.getElementById('classFilter').value;
+
+        const filtered = allStudents.filter(s => {
+            const matchesName = s.name.toLowerCase().includes(searchVal);
+            const matchesClass = selectedClass === 'all' || s.class === selectedClass;
+            return matchesName && matchesClass;
+        });
+
+        renderTable(filtered);
+    }
+</script>
+
+</body>
+</html>
