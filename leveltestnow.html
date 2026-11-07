@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الموسوعة الكبرى لتحديد المستوى - مادة الحاسوب - مدرسة اليرموك</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; direction: rtl; }
+        .container { max-width: 950px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2, h3 { color: #1e3a8a; text-align: center; }
+        .hidden { display: none; }
+        .btn { background-color: #1e3a8a; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        .btn:hover { background-color: #1d4ed8; }
+        .question-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+        .question-title { font-weight: bold; color: #1e293b; margin-bottom: 12px; font-size: 16px; line-height: 1.6; }
+        .option-label { display: block; margin: 8px 0; cursor: pointer; font-size: 15px; }
+        
+        .match-row { display: flex; align-items: center; justify-content: space-between; background: #fff; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 8px; }
+        select, input[type="number"], input[type="text"] { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+        
+        /* تنسيقات خاصة بأسئلة ترتيب كلمات التعريفات */
+        .scrambled-words-box { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; background: #e0f2fe; padding: 12px; border-radius: 6px; }
+        .word-chip { background: #0284c7; color: white; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; user-select: none; }
+        .word-chip:hover { background: #0369a1; }
+        .target-drop-zone { min-height: 45px; background: #fff; border: 2px dashed #0284c7; border-radius: 6px; padding: 8px; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; align-items: center; }
+        
+        .result-header { text-align: center; padding: 20px; border-radius: 8px; margin-bottom: 25px; }
+        .level-excellent { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+        .level-good { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+        .level-needs-review { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        
+        .correction-card { background: #fff; border-right: 4px solid #ef4444; padding: 12px; margin-bottom: 12px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .correct-answer { color: #16a34a; font-weight: bold; }
+        .wrong-answer { color: #dc2626; text-decoration: line-through; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>الموسوعة الكبرى لتحديد المستوى والتدريب - مادة الحاسوب</h2>
+    <p style="text-align: center; color: #666;">مرجع شامل يضم 100 نقطة واختبار (تشمل أسئلة ترتيب الكلمات لتكوين التعريفات، والأسئلة النظرية، والتتبع البرمجي)</p>
+    <hr><br>
+
+    <!-- شاشة الترحيب -->
+    <div id="startSection" style="text-align: center;">
+        <p style="font-size: 16px; color: #333;">أهلاً بك في الموسوعة الكبرى للمراجعة. يرجى إدخال اسمك (اختياري) للبدء:</p>
+        <input type="text" id="studentNameInput" placeholder="اكتب اسمك هنا..." style="width: 80%; max-width: 350px; padding: 10px; font-size: 15px; text-align: center;"><br><br>
+        <button class="btn" onclick="startLevelTest()">ابدأ موسوعة الـ 100 سؤال الشاملة</button>
+    </div>
+
+    <!-- شاشة الاختبار -->
+    <div id="testSection" class="hidden">
+        <div id="welcomeUserMsg" style="font-weight: bold; color: #1e3a8a; margin-bottom: 20px; text-align: center; font-size: 18px;"></div>
+        <form id="levelTestForm">
+            <div id="questionsContainer"></div>
+            <br>
+            <button type="button" class="btn" style="width: 100%;" onclick="evaluateTest()">إنهاء الموسوعة وعرض التقرير الشامل</button>
+        </form>
+    </div>
+
+    <!-- شاشة النتيجة والتصحيح -->
+    <div id="resultSection" class="hidden">
+        <div id="resultHeader" class="result-header">
+            <h3 id="levelBadge" style="margin: 0; font-size: 22px;"></h3>
+            <p id="scoreText" style="font-size: 18px; margin-top: 10px;"></p>
+        </div>
+
+        <h3>تقرير التصحيح والحلول النموذجية الشاملة:</h3>
+        <p style="color: #666; font-size: 14px;">راجع الإجابات الصحيحة للأسئلة التي واجهتك لتعزيز فهمك للمادة:</p>
+        <div id="correctionsContainer"></div>
+
+        <br>
+        <button class="btn" onclick="location.reload()" style="display: block; margin: auto;">إعادة الاختبار من جديد</button>
+    </div>
+</div>
+
+<script>
+    // موسوعة الأسئلة الكبرى (100 سؤال متكاملة تشمل أسئلة تركيب الكلمات للتعريفات + الأسئلة النظرية والتتبع)
+    const levelQuestions = [
+        // --- القسم الأول: أسئلة ترتيب كلمات التعريفات من الشاشة (1 إلى 4) ---
+        {
+            id: 'q1', type: 'build_def',
+            title: '1. (تكوين تعريف المشكلة) اضغط على الكلمات المتاحة أدناه لترتيبها وتكوين التعريف العلمي الدقيق للمشكلة:',
+            scrambled: ['مراد', 'إليه', 'هدف', 'الوصول'],
+            correctOrder: ['هدف', 'مراد', 'الوصول', 'إليه']
+        },
+        {
+            id: 'q2', type: 'build_def',
+            title: '2. (تكوين تعريف الخوارزمية) اضغط على الكلمات المتاحة أدناه لترتيبها لتكوين تعريف الخوارزمية:',
+            scrambled: ['مسألة', 'منطقية', 'لحل', 'متسلسلة', 'مجموعة', 'تعليمات'],
+            correctOrder: ['مجموعة', 'تعليمات', 'منطقية', 'متسلسلة', 'لحل', 'مسألة']
+        },
+        {
+            id: 'q3', type: 'build_def',
+            title: '3. (تكوين تعريف المخطط الانسيابي) اضغط على الكلمات المتاحة أدناه لتكوين تعريف المخطط:',
+            scrambled: ['الحل', 'تخطيطي', 'خطوات', 'رسم', 'بأشكال', 'عن', 'يعبر', 'هندسية'],
+            correctOrder: ['رسم', 'تخطيطي', 'يعبر', 'عن', 'خطوات', 'الحل', 'بأشكال', 'هندسية']
+        },
+        {
+            id: 'q4', type: 'build_def',
+            title: '4. (تكوين تعريف التوثيق) اضغط على الكلمات المتاحة أدناه لتكوين تعريف التوثيق:',
+            scrambled: ['والبرنامج', 'تسجيل', 'خطوات', 'العمل', 'وتدوين'],
+            correctOrder: ['تسجيل', 'وتدوين', 'خطوات', 'العمل', 'والبرنامج']
+        },
+
+        // --- القسم الثاني: المفاهيم النظرية وتحديد المشكلة (5 إلى 35) ---
+        {
+            id: 'q5', type: 'mcq',
+            title: '5. مرحلة "فهم وتحديد المشكلة" (التحليل) تتكون أساساً من العناصر الثلاثة التالية:',
+            options: ['المدخلات ➔ خطوات الحل والمعالجة ➔ المخرجات', 'الطباعة ➔ البيع ➔ الصيانة', 'التخزين ➔ الحذف ➔ الإغلاق', 'السرعة ➔ الذاكرة ➔ المعالج'],
+            correct: 0
+        },
+        {
+            id: 'q6', type: 'tf',
+            title: '6. (صح أم خطأ) المدخلات في تحليل المشكلة تمثل البيانات والمعطيات الأولية المتوفرة للبدء في الحل.',
+            correct: 'true'
+        },
+        {
+            id: 'q7', type: 'tf',
+            title: '7. (صح أم خطأ) خطوات الحل أو المعالجة توضح العمليات والخطوات التي تتم على المدخلات للوصول للهدف.',
+            correct: 'true'
+        },
+        {
+            id: 'q8', type: 'tf',
+            title: '8. (صح أم خطأ) المخرجات هي النتائج النهائية المراد تحقيقها وتعتبر بمثابة الهدف المراد الوصول إليه.',
+            correct: 'true'
+        },
+        {
+            id: 'q9', type: 'mcq',
+            title: '9. ما هي أول مرحلة أساسية ومبدئية يجب تنفيذها قبل الشروع في كتابة أي خوارزمية؟',
+            options: ['كتابة الشفرة البرمجية', 'تحديد وفهم المسألة أو المشكلة بدقة متناهية', 'صيانة اللوحة الأم', 'طباعة النتائج'],
+            correct: 1
+        },
+        {
+            id: 'q10', type: 'mcq',
+            title: '10. الهدف الرئيسي من تقسيم حل المشكلة إلى مراحل مرتبة ومنظمة هو:',
+            options: ['إطالة وقت العمل', 'تجنب الأخطاء وتسهيل اكتشافها وحلها', 'تعقيد البرمجة', 'تقليل سرعة الجهاز'],
+            correct: 1
+        },
+        {
+            id: 'q11', type: 'tf',
+            title: '11. (صح أم خطأ) صيانة البرنامج وتحديثه بانتظام تُعتبر آخر مراحل حل المشكلة.',
+            correct: 'true'
+        },
+        {
+            id: 'q12', type: 'tf',
+            title: '12. (صح أم خطأ) عند مواجهة خطأ في نتائج البرنامج أثناء مرحلة الاختبار، نتجاهله ولا نعود للتعديل.',
+            correct: 'false'
+        },
+        {
+            id: 'q13', type: 'mcq',
+            title: '13. التعبير عن خطوات الحل بطريقة متسلسلة ومنطقية يسمى:',
+            options: ['الخوارزمية', 'الترجمة', 'التخزين المؤقت', 'التشغيل الفوري'],
+            correct: 0
+        },
+        {
+            id: 'q14', type: 'tf',
+            title: '14. (صح أم خطأ) حل المشاكل الحاسوبية يعتمد على التفكير العشوائي غير المنظم.',
+            correct: 'false'
+        },
+        {
+            id: 'q15', type: 'mcq',
+            title: '15. المرحلة التي تتضمن التأكد من خلو البرنامج تماماً من الأخطاء والحصول على نتائج صحيحة تسمى:',
+            options: ['تحديد المشكلة', 'كتابة الخوارزمية', 'اختبار وصيانة البرنامج', 'تجميع البيانات'],
+            correct: 2
+        },
+        {
+            id: 'q16', type: 'mcq',
+            title: '16. التعريف الأدق للخوارزمية في علم الحاسوب هو:',
+            options: ['جهاز إلكتروني سريع', 'مجموعة تعليمات منطقية متسلسلة لحل مسألة', 'لغة برمجة معقدة', 'برنامج حماية'],
+            correct: 1
+        },
+        {
+            id: 'q17', type: 'mcq',
+            title: '17. يعود الفضل في إطلاق كلمة خوارزمية إلى العالم المسلم:',
+            options: ['الخوارزمي', 'ابن الهيثم', 'جابر بن حيان', 'الكندي'],
+            correct: 0
+        },
+        {
+            id: 'q18', type: 'tf',
+            title: '18. (صح أم خطأ) الخوارزمية يجب أن تكون واضحة ومحددة وغير غامضة.',
+            correct: 'true'
+        },
+        {
+            id: 'q19', type: 'tf',
+            title: '19. (صح أم خطأ) يُشترط ألا تتوقف الخوارزمية أبداً وأن تستمر للأبد.',
+            correct: 'false'
+        },
+        {
+            id: 'q20', type: 'mcq',
+            title: '20. ماذا نعني بكون الخوارزمية "متناهية" (Finite)؟',
+            options: ['أنها تتوقف وتنتهي بعد عدد محدد من الخطوات', 'أنها مستمرة للأبد', 'أنها لا تحتوي أرقام', 'أنها سريعة التنفيذ'],
+            correct: 0
+        },
+        {
+            id: 'q21', type: 'tf',
+            title: '21. (صح أم خطأ) يمكن تمثيل المسألة الواحدة بأكثر من خوارزمية صحيحة مختلفة.',
+            correct: 'true'
+        },
+        {
+            id: 'q22', type: 'mcq',
+            title: '22. أي مما يلي لا يُعد من خصائص الخوارزمية الناجحة؟',
+            options: ['التسلسل والوضوح', 'الغموض وعدم التحديد', 'وجود مدخلات ومخرجات', 'الصواب ودقة التنفيذ'],
+            correct: 1
+        },
+        {
+            id: 'q23', type: 'tf',
+            title: '23. (صح أم خطأ) ترتيب خطوات الخوارزمية بطريقة خاطئة يؤدي لنتائج خاطئة.',
+            correct: 'true'
+        },
+        {
+            id: 'q24', type: 'mcq',
+            title: '24. الغرض الأساسي من كتابة الخوارزمية قبل الكود هو:',
+            options: ['استهلاك وقت أطول', 'تخطيط وتصور خطوات الحل بوضوح', 'زيادة حجم التخزين', 'تشغيل الألعاب'],
+            correct: 1
+        },
+        {
+            id: 'q25', type: 'tf',
+            title: '25. (صح أم خطأ) الخوارزميات تُكتب بلغة البشر الطبيعية أو شبه البرمجية قبل تحويلها للغة حاسوب.',
+            correct: 'true'
+        },
+        {
+            id: 'q26', type: 'mcq',
+            title: '26. لماذا نستخدم المتغيرات (Variables) أثناء كتابة الخوارزميات؟',
+            options: ['لتخزين القيم والبيانات وتغييرها حسب الحاجة', 'لتزيين الورقة', 'لزيادة الخطوات', 'لتعطيل الحاسوب'],
+            correct: 0
+        },
+        {
+            id: 'q27', type: 'tf',
+            title: '27. (صح أم خطأ) تبدأ أي خوارزمية قياسية بكلمة "ابدأ" وتنتهي بكلمة "النهاية".',
+            correct: 'true'
+        },
+        {
+            id: 'q28', type: 'mcq',
+            title: '28. التعبير الشرطي في الخوارزميات يعتمد غالباً على كلمة:',
+            options: ['إذا (If)', 'اكرر', 'ارسم', 'اطبع'],
+            correct: 0
+        },
+        {
+            id: 'q29', type: 'tf',
+            title: '29. (صح أم خطأ) التكرار (Loop) يُستخدم لتنفيذ مجموعة خطوات عدة مرات دون إعادة كتابتها.',
+            correct: 'true'
+        },
+        {
+            id: 'q30', type: 'mcq',
+            title: '30. عند كتابة خطوات الخوارزمية، هل يشترط ترقيم الخطوات؟',
+            options: ['نعم، لضمان وضوح التسلسل وترتيب التنفيذ', 'لا، يمكن بعثرتها', 'يفضل اللغات الأجنبية فقط', 'الترقيم يسبب خطأ'],
+            correct: 0
+        },
+        {
+            id: 'q31', type: 'tf',
+            title: '31. (صح أم خطأ) الخوارزميات تستخدم في البرمجة والرياضيات وحل المشاكل اليومية.',
+            correct: 'true'
+        },
+        {
+            id: 'q32', type: 'mcq',
+            title: '32. ما هي الخطوة التي تلي مرحلة إدخال البيانات في الخوارزميات الحسابية البسيطة؟',
+            options: ['عملية المعالجة والحساب', 'إنهاء البرنامج', 'طباعة اسم المدرسة', 'مسح الذاكرة'],
+            correct: 0
+        },
+        {
+            id: 'q33', type: 'tf',
+            title: '33. (صح أم خطأ) الخوارزمية الضعيفة هي التي تحتوي على خطوات غامضة قابلة للتأويل لأكثر من معنى.',
+            correct: 'true'
+        },
+        {
+            id: 'q34', type: 'mcq',
+            title: '34. آخر خطوة تنفيذية تظهر قبل كلمة "النهاية" في الخوارزميات الرياضية عادةً هي:',
+            options: ['طباعة أو إظهار النتيجة النهائية', 'قراءة الأرقام', 'تغيير اسم الطالب', 'إعادة التشغيل'],
+            correct: 0
+        },
+        {
+            id: 'q35', type: 'tf',
+            title: '35. (صح أم خطأ) التفكير الخوارزمي يطور قدرة الطالب على المنطق وحل المشكلات.',
+            correct: 'true'
+        },
+
+        // --- القسم الثالث: المخططات الانسيابية وأشكالها (36 إلى 60) ---
+        {
+            id: 'q36', type: 'mcq',
+            title: '36. المخططات الانسيابية (Flowcharts) تُمثل:',
+            options: ['رسماً تخطيطياً تعبيرياً لخطوات الخوارزمية بالأشكال الهندسية', 'جدول بيانات', 'برنامج نصوص', 'صورة شخصية'],
+            correct: 0
+        },
+        {
+            id: 'q37', type: 'match',
+            title: '37. صل كل شكل هندسي بالوظيفة البرمجية المخصصة له في المخططات الانسيابية:',
+            pairs: [
+                { item: 'الشكل البيضاوي (الكبسولة)', correctOption: 'البداية والنهاية' },
+                { item: 'متوازي الأضلاع', correctOption: 'إدخال وقراءة / إخراج البيانات' },
+                { item: 'المستطيل', correctOption: 'العمليات الحسابية والمعالجة' },
+                { item: 'المعين', correctOption: 'اتخاذ القرار وفحص الشروط' }
+            ],
+            allOptions: ['البداية والنهاية', 'إدخال وقراءة / إخراج البيانات', 'العمليات الحسابية والمعالجة', 'اتخاذ القرار وفحص الشروط']
+        },
+        {
+            id: 'q38', type: 'tf',
+            title: '38. (صح أم خطأ) اكتشاف الأخطاء المنطقية وتصحيحها في المخططات أسهل مقارنة بالأكواد المعقدة.',
+            correct: 'true'
+        },
+        {
+            id: 'q39', type: 'tf',
+            title: '39. (صح أم خطأ) يُستخدم شكل "المعين" لعمليات الإدخال والإخراج فقط.',
+            correct: 'false'
+        },
+        {
+            id: 'q40', type: 'mcq',
+            title: '40. تُستخدَم الخطوط والأسهم في المخططات الانسيابية للدلالة على:',
+            options: ['اتجاه سير العمليات والاتصال بين الأشكال', 'العمليات الحسابية', 'ألوان الشاشة', 'حجم الذاكرة'],
+            correct: 0
+        },
+        {
+            id: 'q41', type: 'tf',
+            title: '41. (صح أم خطأ) المخططات الانسيابية تُعتبر لغة بصرية عالمية لفهم البرامج بغض النظر عن لغة البرمجة.',
+            correct: 'true'
+        },
+        {
+            id: 'q42', type: 'mcq',
+            title: '42. كم عدد التفريعات أو الأسهم الخارجة غالباً من شكل "المعين" (اتخاذ القرار)؟',
+            options: ['سهم واحد', 'سهمان (عادة يمثلان نعم / لا)', 'خمسة أسهم', 'لا توجد أسهم'],
+            correct: 1
+        },
+        {
+            id: 'q43', type: 'tf',
+            title: '43. (صح أم خطأ) يجب أن يحتوي المخطط الانسيابي على نقطة بداية واحدة ونهاية واضحة.',
+            correct: 'true'
+        },
+        {
+            id: 'q44', type: 'mcq',
+            title: '44. لماذا يُفضل المخطط الانسيابي على الخوارزمية النصية أحياناً في البرامج الكبيرة؟',
+            options: ['لأنه يوضح الصورة الشاملة وسرعة تتبع تدفق البيانات بصرياً', 'لأنه أرخص', 'لأنه يستهلك كهرباء أقل', 'لأنه يمنع الأخطاء 100%'],
+            correct: 0
+        },
+        {
+            id: 'q45', type: 'tf',
+            title: '45. (صح أم خطأ) يُسمح بتقاطع الأسهم واتجاهاتها في المخططات الانسيابية بطريقة معقدة وعشوائية.',
+            correct: 'false'
+        },
+        {
+            id: 'q46', type: 'mcq',
+            title: '46. الشكل الهندسي المناسب لاحتواء عملية طباعة عبارة أو نتيجة هو:',
+            options: ['متوازي الأضلاع (لأنه عملية إخراج)', 'المعين', 'المستطيل', 'البيضاوي'],
+            correct: 0
+        },
+        {
+            id: 'q47', type: 'tf',
+            title: '47. (صح أم خطأ) المقارنة بين الخوارزمية والمخطط توضح أن الخوارزمية نصية والمخطط بصري.',
+            correct: 'true'
+        },
+        {
+            id: 'q48', type: 'mcq',
+            title: '48. الشكل الهندسي المناسب لعملية حساب مجموع عددين داخل المخطط هو:',
+            options: ['المستطيل', 'متوازي الأضلاع', 'المعين', 'البيضاوي'],
+            correct: 0
+        },
+        {
+            id: 'q49', type: 'tf',
+            title: '49. (صح أم خطأ) المخطط الانسيابي هو ترجمة بصرية مباشرة للخوارزمية النصية.',
+            correct: 'true'
+        },
+        {
+            id: 'q50', type: 'mcq',
+            title: '50. أي الأخطاء يعتبر الأسهل اكتشافاً بفضل المخطط الانسيابي؟',
+            options: ['الأخطاء المنطقية وتسلسل الخطوات', 'تلف الشاشة', 'انقطاع الكهرباء', 'عطل لوحة المفاتيح'],
+            correct: 0
+        },
+        {
+            id: 'q51', type: 'tf',
+            title: '51. (صح أم خطأ) الخوارزمية أسهل في التعديل النصي السريع مقارنة بإعادة رسم المخطط كاملاً.',
+            correct: 'true'
+        },
+        {
+            id: 'q52', type: 'mcq',
+            title: '52. ماذا يمثل الخط الواصل بين الأشكال في المخطط؟',
+            options: ['مسار واتجاه تدفق البيانات وعمل التنفيذ', 'سلك كهربائي', 'خط الطول', 'الذاكرة المؤقتة'],
+            correct: 0
+        },
+        {
+            id: 'q53', type: 'tf',
+            title: '53. (صح أم خطأ) تُوضع أشكال البداية والنهاية في رأس المخطط الانسيابي وقاعه.',
+            correct: 'true'
+        },
+        {
+            id: 'q54', type: 'mcq',
+            title: '54. ما هي مميزات المخططات الانسيابية مقارنة بالكود البرمجي الخام؟',
+            options: ['سهولة القراءة والفهم البصري السريع وتوثيق الأفكار', 'إبطاء الجهاز', 'زيادة حجم الملفات', 'منع لغات البرمجة'],
+            correct: 0
+        },
+        {
+            id: 'q55', type: 'tf',
+            title: '55. (صح أم خطأ) المخططات الانسيابية تتطلب شكلاً هندسياً مختلفاً لكل نوع من العمليات.',
+            correct: 'true'
+        },
+        {
+            id: 'q56', type: 'mcq',
+            title: '56. أي الأشكال يُستخدم لتمثيل قراءة قيمة المتغير X في المخطط؟',
+            options: ['متوازي الأضلاع', 'المستطيل', 'المعين', 'البيضاوي'],
+            correct: 0
+        },
+        {
+            id: 'q57', type: 'tf',
+            title: '57. (صح أم خطأ) تفتقر الخوارزميات للجانب المرئي بينما تتميز المخططات به.',
+            correct: 'true'
+        },
+        {
+            id: 'q58', type: 'mcq',
+            title: '58. ما هو الشكل الهندسي الذي يحتوي على أكثر من مخرج (سهمين أو أكثر)؟',
+            options: ['المعين (اتخاذ القرار)', 'المستطيل', 'متوازي الأضلاع', 'البيضاوي'],
+            correct: 0
+        },
+        {
+            id: 'q59', type: 'tf',
+            title: '59. (صح أم خطأ) يفضل رسم المخطط من الأعلى إلى الأسفل بانتظام.',
+            correct: 'true'
+        },
+        {
+            id: 'q60', type: 'tf',
+            title: '60. (صح أم خطأ) الخوارزميات والمخططات وجهان لعملة واحدة هي تصميم وحل المشكلات.',
+            correct: 'true'
+        },
+
+        // --- القسم الرابع: لغات البرمجة (61 إلى 75) ---
+        {
+            id: 'q61', type: 'mcq',
+            title: '61. ما هي الغاية الأساسية من تحويل الخوارزمية إلى لغة برمجة (مثل Python أو C++)؟',
+            options: ['لتفهمها الحاسوب وتنفيذها بشكل آلي وسريع', 'لزراعة الأفكار', 'لتغيير شكل الشاشة', 'لإلغاء المعالج'],
+            correct: 0
+        },
+        {
+            id: 'q62', type: 'tf',
+            title: '62. (صح أم خطأ) لغة بايثون (Python) تُعتبر من لغات البرمجة سهلة التعلم وواسعة الانتشار.',
+            correct: 'true'
+        },
+        {
+            id: 'q63', type: 'mcq',
+            title: '63. متى يُفضل استخدام لغات البرمجة عالية المستوى مثل C++ أو Java؟',
+            options: ['لبناء تطبيقات قوية وسريعة وتحكم متقدم بالعتاد', 'لكتابة رسائل نصية قصيرة', 'لطباعة الأوراق', 'لتصفح الإنترنت'],
+            correct: 0
+        },
+        {
+            id: 'q64', type: 'tf',
+            title: '64. (صح أم خطأ) لغات البرمجة تتطلب قواعد صارمة (Syntax) بخلاف الخوارزميات النصية.',
+            correct: 'true'
+        },
+        {
+            id: 'q65', type: 'mcq',
+            title: '65. في أي مجال تُستخدم لغة الجافا سكريبت (JavaScript) بشكل أساسي؟',
+            options: ['تطوير وتفاعل صفحات وتطبيقات الويب', 'صيانة محركات السيارات', 'صناعة الشاشات', 'حسابات الضرائب'],
+            correct: 0
+        },
+        {
+            id: 'q66', type: 'tf',
+            title: '66. (صح أم خطأ) تنفذ لغات البرمجة التعليمات بترتيب منطقي يطابق الخوارزمية المصممة لها.',
+            correct: 'true'
+        },
+        {
+            id: 'q67', type: 'mcq',
+            title: '67. ما هي لغة الآلة (Machine Language) التي يفهمها المعالج مباشرة؟',
+            options: ['لغة الثنائي (الأصفار والآحاد 0 و 1)', 'اللغة العربية الفصحى', 'لغة الإنجليزية', 'لغة الرسم'],
+            correct: 0
+        },
+        {
+            id: 'q68', type: 'tf',
+            title: '68. (صح أم خطأ) المترجمات (Compilers) تترجم لغة البرمجة إلى لغة الآلة ليفهمها الحاسوب.',
+            correct: 'true'
+        },
+        {
+            id: 'q69', type: 'mcq',
+            title: '69. لغة برمجة شائعة جداً في مجالات الذكاء الاصطناعي وتحليل البيانات:',
+            options: ['بايثون (Python)', 'لغة الآلة الصرفة', 'لغة HTML البسيطة', 'لغة التصميم'],
+            correct: 0
+        },
+        {
+            id: 'q70', type: 'tf',
+            title: '70. (صح أم خطأ) لا يمكن كتابة برنامج حاسوبي بدون مرحلة تصميم الخوارزمية أولاً.',
+            correct: 'false'
+        },
+        {
+            id: 'q71', type: 'mcq',
+            title: '71. لماذا نستخدم لغات البرمجة ذات المستوى العالي؟',
+            options: ['لأنها قريبة من لغة البشر وتسهل كتابة وفهم البرامج المعقدة', 'لأنها بطيئة', 'لأنها تمنع العمل', 'لأنها بلا قواعد'],
+            correct: 0
+        },
+        {
+            id: 'q72', type: 'tf',
+            title: '72. (صح أم خطأ) لغة C++ تستخدم في برمجة الألعاب والأنظمة التي تتطلب أداءً فائق السرعة.',
+            correct: 'true'
+        },
+        {
+            id: 'q73', type: 'mcq',
+            title: '73. ما هو دور المبرمج بعد رسم المخطط الانسيابي؟',
+            options: ['ترجمة الأشكال والخطوات إلى أكواد برمجية بإحدى لغات البرمجة', 'إغلاق الحاسوب', 'حفظ الشاشة', 'تغيير الطاولة'],
+            correct: 0
+        },
+        {
+            id: 'q74', type: 'tf',
+            title: '74. (صح أم خطأ) لغة SQL تُستخدَم خصيصاً للتعامل مع قواعد البيانات واستعلامها.',
+            correct: 'true'
+        },
+        {
+            id: 'q75', type: 'tf',
+            title: '75. (صح أم خطأ) تتشابه جميع لغات البرمجة في وجود مفاهيم المتغيرات، الشروط، والتكرار.',
+            correct: 'true'
+        },
+
+        // --- القسم الخامس: تتبع الخوارزميات والمعادلات (76 إلى 88) ---
+        {
+            id: 'q76', type: 'trace_code',
+            title: '76. أجرِ تتبعاً للخوارزمية التالية وأوجد ناتج C:\n- ابدأ\n- A = 5\n- B = 3\n- C = A + (B * 2)\n- اطبع C',
+            options: ['16', '11', '13', '10'],
+            correct: 1
+        },
+        {
+            id: 'q77', type: 'trace_code',
+            title: '77. أوجد ناتج الخوارزمية التالية:\n- ابدأ\n- X = 10\n- Y = 4\n- Z = X - (Y / 2)\n- اطبع Z',
+            options: ['8', '6', '12', '5'],
+            correct: 0
+        },
+        {
+            id: 'q78', type: 'trace_code',
+            title: '78. أوجد القيمة النهائية للمتغير Sum:\n- ابدأ\n- Sum = 0\n- Sum = Sum + 10\n- Sum = Sum + 20\n- اطبع Sum',
+            options: ['30', '10', '20', '0'],
+            correct: 0
+        },
+        {
+            id: 'q79', type: 'trace_code',
+            title: '79. تتبع الخوارزمية التالية لحساب معدل طالب لمادتين دراسيتين:\n- ابدأ\n- M1 = 60\n- M2 = 80\n- Avg = (M1 + M2) / 2\n- اطبع Avg',
+            options: ['70', '140', '65', '75'],
+            correct: 0
+        },
+        {
+            id: 'q80', type: 'trace_code',
+            title: '80. تتبع الخوارزمية التالية:\n- ابدأ\n- N = 7\n- Rest = N Mod 2\n- اطبع Rest',
+            options: ['1', '0', '7', '2'],
+            correct: 0
+        },
+        {
+            id: 'q81', type: 'trace_code',
+            title: '81. أوجد ناتج حساب مساحة مستطيل طوله 8 وعرضه 3:\n- ابدأ\n- L = 8\n- W = 3\n- Area = L * W\n- اطبع Area',
+            options: ['24', '11', '22', '48'],
+            correct: 0
+        },
+        {
+            id: 'q82', type: 'trace_code',
+            title: '82. تتبع المعادلة التالية:\n- ابدأ\n- P = 10\n- R = 5\n- T = 2\n- SimpleInterest = (P * R * T) / 100\n- اطبع SimpleInterest',
+            options: ['1', '10', '5', '100'],
+            correct: 0
+        },
+        {
+            id: 'q83', type: 'trace_code',
+            title: '83. أوجد ناتج الخوارزمية الحسابية:\n- ابدأ\n- X = 3\n- Y = 4\n- Result = (X * X) + (Y * Y)\n- اطبع Result',
+            options: ['25', '14', '49', '12'],
+            correct: 0
+        },
+        {
+            id: 'q84', type: 'trace_code',
+            title: '84. تتبع الخوارزمية:\n- ابدأ\n- A = 20\n- B = 5\n- Div = A / B\n- Mul = Div * 2\n- اطبع Mul',
+            options: ['8', '10', '4', '20'],
+            correct: 0
+        },
+        {
+            id: 'q85', type: 'trace_code',
+            title: '85. تتبع الخوارزمية:\n- ابدأ\n- Score = 45\n- Score = Score + 5\n- Score = Score * 2\n- اطبع Score',
+            options: ['100', '95', '90', '110'],
+            correct: 0
+        },
+        {
+            id: 'q86', type: 'trace_code',
+            title: '86. تتبع عملية تبديل القيم (Swapping):\n- ابدأ\n- X = 5\n- Y = 10\n- Temp = X\n- X = Y\n- Y = Temp\n- اطبع قيمة X الجديدة',
+            options: ['10', '5', '15', '0'],
+            correct: 0
+        },
+        {
+            id: 'q87', type: 'trace_code',
+            title: '87. تتبع المعادلة:\n- ابدأ\n- C = 25\n- F = (C * 9/5) + 32\n- اطبع F',
+            options: ['77', '65', '80', '72'],
+            correct: 0
+        },
+        {
+            id: 'q88', type: 'trace_code',
+            title: '88. أوجد ناتج الخوارزمية:\n- ابدأ\n- K = 4\n- Cube = K * K * K\n- اطبع Cube',
+            options: ['64', '16', '12', '32'],
+            correct: 0
+        },
+
+        // --- القسم السادس: الحلقات التكرارية والبحث والفرز (89 إلى 100) ---
+        {
+            id: 'q89', type: 'trace_code',
+            title: '89. تتبع حلقة تكرارية:\n- ابدأ\n- X = 2\n- تكرار 3 مرات: (اجعل X = X * 3)\n- اطبع X',
+            options: ['54', '18', '6', '27'],
+            correct: 0
+        },
+        {
+            id: 'q90', type: 'trace_code',
+            title: '90. تتبع خوارزمية جمع الأعداد من 1 إلى 3:\n- ابدأ\n- Sum = 0\n- عداد I من 1 إلى 3:\n  - Sum = Sum + I\n- اطبع Sum',
+            options: ['6', '3', '5', '10'],
+            correct: 0
+        },
+        {
+            id: 'q91', type: 'mcq',
+            title: '91. في خوارزمية إيجاد القيمة الكبرى (Max) بين مجموعة أرقام، ما هي الفكرة الأساسية للحل؟',
+            options: ['افتراض أن الرقم الأول هو الأكبر ثم مقارنته ببقية الأرقام وتحديث القيمة إن وجد أكبر منه', 'جمع جميع الأرقام معاً', 'قسمة الأرقام على 2', 'حذف الأرقام الزوجية'],
+            correct: 0
+        },
+        {
+            id: 'q92', type: 'mcq',
+            title: '92. في خوارزمية إيجاد القيمة الصغرى (Min)، كيف يتم التعامل مع أول عنصر تم إدخاله؟',
+            options: ['يتم اعتباره كقيمة صغرى أولية والمقارنة بقية العناصر به', 'يتم إهماله تماماً', 'يتم ضربه في نفسه', 'يتم اعتباره صفراً'],
+            correct: 0
+        },
+        {
+            id: 'q93', type: 'trace_code',
+            title: '93. تتبع خوارزمية فحص الأعداد الزوجية والفردية (باستخدام Mod):\n- رقم N = 8\n- إذا كان (N Mod 2 == 0) اطبع "زوجي" وإلا اطبع "فردي"',
+            options: ['زوجي', 'فردي', 'صفر', 'خطأ'],
+            correct: 0
+        },
+        {
+            id: 'q94', type: 'trace_code',
+            title: '94. تتبع خوارزمية طباعة الأعداد الفردية:\n- رقم N = 7\n- إذا كان (N Mod 2 != 0) اطبع "عدد فردي"',
+            options: ['عدد فردي', 'عدد زوجي', 'لا شيء', 'صفر'],
+            correct: 0
+        },
+        {
+            id: 'q95', type: 'mcq',
+            title: '95. لحساب متوسط مجموع من القيم (Average)، ما هي العمليات الرياضية اللازمة بالتسلسل؟',
+            options: ['جمع كافة القيم ثم قسمة المجموع الكلي على عددها الإجمالي', 'ضرب القيم في بعضها', 'طرح القيم من الصفر', 'إيجاد المجموع فقط دون قسمة'],
+            correct: 0
+        },
+        {
+            id: 'q96', type: 'trace_code',
+            title: '96. أجرِ تتبعاً لحلقة تكرارية مضاعفة:\n- ابدأ\n- Total = 0\n- لـ I من 1 إلى 2 ولـ J من 1 إلى 2:\n  - Total = Total + 1\n- اطبع Total',
+            options: ['4', '2', '3', '1'],
+            correct: 0
+        },
+        {
+            id: 'q97', type: 'mcq',
+            title: '97. ما هو الغرض من استخدام متغير "عداد" (Counter) داخل الحلقات التكرارية (Loops)؟',
+            options: ['حساب عدد مرات تنفيذ حلقة العمل أو تتبع رقم الدورة الحالية', 'حفظ اسم الطالب', 'تغيير شكل المخطط', 'إيقاف الجهاز'],
+            correct: 0
+        },
+        {
+            id: 'q98', type: 'trace_code',
+            title: '98. تتبع خوارزمية إيجاد الأكبر بين رقمين (A=15, B=25):\n- إذا كان (A > B) اطبع A وإلا اطبع B',
+            options: ['25', '15', '40', '0'],
+            correct: 0
+        },
+        {
+            id: 'q99', type: 'trace_flowchart',
+            title: '99. تتبع شرط التوقف في حلقة تكرارية:\n- ابدأ بـ Counter = 0\n- طالما أن (Counter < 3) قم بزيادة Counter بمقدار 1\n- ما هي القيمة النهائية لـ Counter عند توقف الحلقة؟',
+            options: ['3', '2', '4', '0'],
+            correct: 0
+        },
+        {
+            id: 'q100', type: 'mcq',
+            title: '100. (السؤال الختامي الشامل للموسوعة) لماذا يُعتبر التدريب المستمر على تتبع الخوارزميات وحل المشكلات المهارة الأهم للمبرمج؟',
+            options: ['لأنه ينمي التفكير المنطقي والهندسي لاكتشاف الأخطاء وكتابة برمجيات سليمة وفعالة', 'لأنه يملأ وقت الفراغ فقط', 'لأنه يغني عن الحاسوب نهائياً', 'لأنه يقلل سرعة التفكير'],
+            correct: 0
+        }
+    ];
+
+    function startLevelTest() {
+        const studentName = document.getElementById('studentNameInput').value.trim();
+        const displayName = studentName ? studentName : "طالب زائر / مراجع";
+
+        document.getElementById('welcomeUserMsg').innerHTML = `أهلاً بك يا <strong>${displayName}</strong> في موسوعة التقييم الكبرى (100 سؤال وترتيب الكلمات)`;
+
+        document.getElementById('startSection').classList.add('hidden');
+        document.getElementById('testSection').classList.remove('hidden');
+
+        renderQuestions();
+    }
+
+    function renderQuestions() {
+        const container = document.getElementById('questionsContainer');
+        container.innerHTML = '';
+
+        levelQuestions.forEach((q) => {
+            let html = `<div class="question-card">`;
+            html += `<div class="question-title">${q.title.replace(/\n/g, '<br>')}</div>`;
+
+            if (q.type === 'build_def') {
+                html += `<div><strong>الكلمات المتاحة (اضغط لاختيارها وترتيبها):</strong></div>`;
+                html += `<div class="scrambled-words-box" id="scrambled_${q.id}">`;
+                q.scrambled.forEach((word) => {
+                    html += `<span class="word-chip" onclick="moveWord('${q.id}', this, 'selected')">${word}</span>`;
+                });
+                html += `</div>`;
+                html += `<div><strong>الترتيب الحالي للتعريف:</strong></div>`;
+                html += `<div class="target-drop-zone" id="selected_${q.id}"></div>`;
+            }
+            else if (q.type === 'mcq' || q.type === 'trace_code' || q.type === 'trace_flowchart') {
+                q.options.forEach((opt, i) => {
+                    html += `<label class="option-label">
+                        <input type="radio" name="${q.id}" value="${i}"> ${opt}
+                    </label>`;
+                });
+            }
+            else if (q.type === 'tf') {
+                html += `<label class="option-label"><input type="radio" name="${q.id}" value="true"> صح (✔)</label>`;
+                html += `<label class="option-label"><input type="radio" name="${q.id}" value="false"> خطأ (✖)</label>`;
+            }
+            else if (q.type === 'match') {
+                q.pairs.forEach((pair, i) => {
+                    html += `<div class="match-row">
+                        <span><strong>${pair.item}</strong></span>
+                        <select name="${q.id}_match_${i}">
+                            <option value="">-- اختر الوظيفة المناسبة --</option>
+                            ${q.allOptions.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                        </select>
+                    </div>`;
+                });
+            }
+
+            html += `</div>`;
+            container.innerHTML += html;
+        });
+    }
+
+    // دالة تفاعلية لترتيب وسحب الكلمات من الشاشة
+    function moveWord(qid, element, targetType) {
+        const selectedZone = document.getElementById(`selected_${qid}`);
+        const scrambledZone = document.getElementById(`scrambled_${qid}`);
+
+        if (element.parentElement.id === `scrambled_${qid}`) {
+            selectedZone.appendChild(element);
+        } else {
+            scrambledZone.appendChild(element);
+        }
+    }
+
+    function evaluateTest() {
+        let totalPoints = 0;
+        let earnedPoints = 0;
+        let corrections = [];
+        const scorePerQuestion = 100 / levelQuestions.length;
+
+        levelQuestions.forEach((q) => {
+            totalPoints += scorePerQuestion;
+
+            if (q.type === 'build_def') {
+                const selectedZone = document.getElementById(`selected_${q.id}`);
+                const userWords = Array.from(selectedZone.children).map(el => el.textContent.trim());
+                
+                // مقارنة التترتيب مع الترتيب الصحيح
+                const isCorrect = userWords.length === q.correctOrder.length && 
+                                  userWords.every((val, index) => val === q.correctOrder[index]);
+
+                if (isCorrect) {
+                    earnedPoints += scorePerQuestion;
+                } else {
+                    corrections.push({ 
+                        title: q.title, 
+                        userAns: userWords.length > 0 ? userWords.join(' ') : 'لم تقم بترتيب الكلمات', 
+                        correctAns: q.correctOrder.join(' ') 
+                    });
+                }
+            }
+            else if (q.type === 'mcq' || q.type === 'trace_code' || q.type === 'trace_flowchart') {
+                const selected = document.querySelector(`input[name="${q.id}"]:checked`);
+                if (selected && parseInt(selected.value) === q.correct) {
+                    earnedPoints += scorePerQuestion;
+                } else {
+                    const userAns = selected ? q.options[parseInt(selected.value)] : 'لم يتم الإجابة';
+                    corrections.push({ title: q.title, userAns, correctAns: q.options[q.correct] });
+                }
+            } 
+            else if (q.type === 'tf') {
+                const selected = document.querySelector(`input[name="${q.id}"]:checked`);
+                if (selected && selected.value === q.correct) {
+                    earnedPoints += scorePerQuestion;
+                } else {
+                    const userAns = selected ? (selected.value === 'true' ? 'صح' : 'خطأ') : 'لم يتم الإجابة';
+                    const correctAns = q.correct === 'true' ? 'صح' : 'خطأ';
+                    corrections.push({ title: q.title, userAns, correctAns });
+                }
+            }
+            else if (q.type === 'match') {
+                let matchCorrect = true;
+                q.pairs.forEach((pair, i) => {
+                    const selectedOpt = document.querySelector(`select[name="${q.id}_match_${i}"]`).value;
+                    if (selectedOpt !== pair.correctOption) matchCorrect = false;
+                });
+                if (matchCorrect) {
+                    earnedPoints += scorePerQuestion;
+                } else {
+                    corrections.push({ 
+                        title: q.title, 
+                        userAns: 'توصيل غير دقيق أو خاطئ', 
+                        correctAns: q.pairs.map(p => `${p.item} ➔ ${p.correctOption}`).join(' | ') 
+                    });
+                }
+            }
+        });
+
+        showResult(Math.round(earnedPoints), corrections);
+    }
+
+    function showResult(percentage, corrections) {
+        document.getElementById('testSection').classList.add('hidden');
+        document.getElementById('resultSection').classList.remove('hidden');
+
+        const header = document.getElementById('resultHeader');
+        const badge = document.getElementById('levelBadge');
+        const scoreText = document.getElementById('scoreText');
+
+        scoreText.textContent = `النسبة المئوية للتقييم: ${percentage}%`;
+
+        if (percentage >= 85) {
+            badge.textContent = "🏆 التقدير: عبقري الحاسوب (متمكن بامتياز مطلق من كافة أركان المادة)";
+            header.className = "result-header level-excellent";
+        } else if (percentage >= 65) {
+            badge.textContent = "👍 التقدير: جيد جداً (فهم قوي ومستوى متميز)";
+            header.className = "result-header level-good";
+        } else {
+            badge.textContent = "⚠️ التقدير: بحاجة إلى مراجعة شاملة للمفاهيم والتعريفات";
+            header.className = "result-header level-needs-review";
+        }
+
+        const container = document.getElementById('correctionsContainer');
+        container.innerHTML = '';
+
+        if (corrections.length === 0) {
+            container.innerHTML = '<p style="color: green; font-weight: bold; text-align: center;">إجاباتك كلها سليمة ومثالية 100%! أداء أسطوري.</p>';
+        } else {
+            corrections.forEach(c => {
+                container.innerHTML += `
+                    <div class="correction-card">
+                        <div style="font-weight: bold; margin-bottom: 5px; color: #1e293b;">${c.title}</div>
+                        <div>إجابتك المسجلة: <span class="wrong-answer">${c.userAns}</span></div>
+                        <div>الإجابة النموذجية الصحيحة: <span class="correct-answer">${c.correctAns}</span></div>
+                    </div>
+                `;
+            });
+        }
+    }
+</script>
+
+</body>
+</html>
