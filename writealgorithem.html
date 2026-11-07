@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اكتب الخوارزمية - ترتيب الخطوات بالنقر</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f1f5f9; padding: 15px; direction: rtl; margin: 0; color: #0f172a; user-select: none; }
+        .card { background: white; max-width: 550px; margin: auto; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        
+        /* رأس الصفحة والمدرسة والمدرس */
+        .school-header { text-align: center; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px; margin-bottom: 15px; }
+        .school-name { font-size: 14px; color: #64748b; font-weight: 600; }
+        .teacher-name { font-size: 13px; color: #94a3b8; margin-top: 2px; }
+
+        h2 { color: #1e3a8a; text-align: center; margin-top: 0; font-size: 19px; }
+        .subtitle { text-align: center; color: #64748b; font-size: 13px; margin-bottom: 15px; }
+
+        .progress-bar { background: #e2e8f0; border-radius: 10px; height: 10px; width: 100%; margin-bottom: 15px; overflow: hidden; }
+        .progress-fill { background: #2563eb; height: 100%; width: 0%; transition: width 0.3s ease; }
+
+        .problem-box { background: #eff6ff; border: 1px solid #bfdbfe; padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 14px; font-weight: bold; color: #1e40af; text-align: center; }
+        
+        .section-title { font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 5px; }
+
+        /* صندوق الخطوات المتاحة */
+        .source-container { background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 8px; padding: 10px; min-height: 90px; display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+
+        /* صندوق ترتيب الحل */
+        .drop-container { background: #f0fdf4; border: 2px dashed #bbf7d0; border-radius: 8px; padding: 10px; min-height: 110px; display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+
+        /* عناصر الخطوات (بالنقر) */
+        .step-item { background: white; border: 1px solid #94a3b8; padding: 10px 12px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; }
+        .step-item:hover { background: #e2e8f0; border-color: #64748b; }
+
+        .btn { display: block; width: 100%; background: #2563eb; color: white; border: none; padding: 11px; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 10px; text-align: center; }
+        .btn:hover { background: #1d4ed8; }
+
+        .feedback { margin-top: 15px; padding: 11px; border-radius: 6px; font-weight: bold; display: none; text-align: center; font-size: 13px; }
+        .feedback.correct { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+        .feedback.incorrect { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+
+        .result-screen { text-align: center; display: none; }
+        .score-circle { width: 90px; height: 90px; border-radius: 50%; background: #1e3a8a; color: white; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: bold; margin: 20px auto; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <!-- رأس الصفحة -->
+    <div class="school-header">
+        <div class="school-name">مدرسة اليرموك للتعليم الأساسي والثانوي</div>
+        <div class="teacher-name">إعداد وتنسيق معلم المادة: أ. الشريف علي الكور</div>
+    </div>
+
+    <h2>اكتب الخوارزمية - ترتيب الخطوات (بالنقر) ✍️</h2>
+    <div class="subtitle" id="stepCounter">السؤال 1 من 10</div>
+    
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div id="quizContent">
+        <div class="problem-box" id="problemTitle">المسألة: ...</div>
+
+        <!-- الخطوات المتاحة -->
+        <div class="section-title">📂 اضغط على الخطوة لنقلها لصندوق الحل:</div>
+        <div class="source-container" id="sourceList"></div>
+
+        <!-- صندوق الترتيب -->
+        <div class="section-title">📥 خطوت الحل المرتبة (اضغط على الخطوة لإرجاعها للتصحيح):</div>
+        <div class="drop-container" id="dropList"></div>
+
+        <div id="feedback" class="feedback"></div>
+
+        <button id="actionBtn" class="btn" onclick="checkAnswer()">تأكيد الإجابة</button>
+    </div>
+
+    <div id="resultScreen" class="result-screen">
+        <h3>أحسنت! أكملت تدريبات بناء الخوارزميات بنجاح</h3>
+        <p>درجتك النهائية:</p>
+        <div class="score-circle" id="scoreText">0/10</div>
+        <button class="btn" onclick="restartQuiz()">إعادة التدريب 🔄</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        {
+            problem: "حساب مجموع عددين (A و B) وطباعة الناتج.",
+            steps: [
+                "البداية (Start)",
+                "ادخل القيمتين (A, B)",
+                "احسب المجموع: Sum = A + B",
+                "اطبع الناتج (Sum)",
+                "النهاية (End)"
+            ],
+            correctOrder: [0, 1, 2, 3, 4]
+        },
+        {
+            problem: "حساب مساحة المستطيل بمعلومية الطول (L) والعرض (W).",
+            steps: [
+                "البداية (Start)",
+                "ادخل الطول والعرض (L, W)",
+                "احسب المساحة: Area = L * W",
+                "اطبع المساحة (Area)",
+                "النهاية (End)"
+            ],
+            correctOrder: [0, 1, 2, 3, 4]
+        },
+        {
+            problem: "طباعة عبارة \"ناجح\" إذا كانت الدرجة أكبر من أو تساوي 50.",
+            steps: [
+                "البداية (Start)",
+                "ادخل درجة الطالب (Mark)",
+                "هل Mark >= 50 ؟",
+                "إذا كان (نعم): اطبع \"ناجح\"",
+                "النهاية (End)"
+            ],
+            correctOrder: [0, 1, 2, 3, 4]
+        },
+        {
+            problem: "حساب معدل (Average) لثلاثة أعداد (X, Y, Z).",
+            steps: [
+                "البداية (Start)",
+                "ادخل الأعداد الثلاثة (X, Y, Z)",
+                "احسب المعدل: Avg = (X + Y + Z) / 3",
+                "اطبع المعدل (Avg)",
+                "النهاية (End)"
+            ],
+            correctOrder: [0, 1, 2, 3, 4]
+        },
+        {
+            problem: "إيجاد أكبر عدد بين عددين (A و B).",
+            steps: [
+                "البداية (Start)",
+                "ادخل العددين (A, B)",
+                "هل A > B ؟ (نعم: اطبع A / لا: اطبع B)",
+                "النهاية (End)"
+            ],
+            correctOrder: [0, 1, 2, 3]
+        },
+        {
+            problem: "تحويل درجة الحرارة من فهرنهايت إلى مئوي (C = (F - 32) * 5/9).",
+            steps: [
+                "البداية (Start)",
+                "ادخل درجة الحرارة بالفهرنهايت (F)",
+                "احسب المئوي: C = (F - 32) * 5/9",
+                "اطبع الدرجة المئوية (C)",
+                "النهاية (End)"
+            ],
+            correctOrder: [0, 1, 2, 3, 4]
+        },
+        {
+            problem: "طباعة الأعداد من 1 إلى 3 باستخدام حلقة تكرارية واضحة التفرع.",
+            steps: [
+                "Start (تعيين العداد N = 1)",
+                "هل N <= 3 ؟",
+                "إذا كان (نعم): اطبع N ثم زد العداد N = N + 1 وارجع للشرط",
+                "إذا كان (لا): اخرج من الحلقة",
+                "النهاية (End)"
+            ],
+            correctOrder: [0, 1, 2, 3, 4]
+        },
+        {
+            problem: "فحص ما إذا كان العدد (X) موجباً أم سالباً.",
+            steps: [
+                "Start",
+                "ادخل العدد (X)",
+                "هل X > 0 ؟ (نعم: موجـب / لا: سالـب)",
+                "النهاية (End)"
+            ],
+            correctOrder: [0, 1, 2, 3]
+        },
+        {
+            problem: "إدخال اسم الطالب وطباعته على الشاشة.",
+            steps: [
+                "Start",
+                "ادخل اسم الطالب (Name)",
+                "اطبع اسم الطالب (Name)",
+                "End"
+            ],
+            correctOrder: [0, 1, 2, 3]
+        },
+        {
+            problem: "حساب محيط المربع بمعلومية طول الضلع (S).",
+            steps: [
+                "Start",
+                "ادخل طول الضلع (S)",
+                "احسب المحيط: P = S * 4",
+                "اطبع المحيط (P)",
+                "End"
+            ],
+            correctOrder: [0, 1, 2, 3, 4]
+        }
+    ];
+
+    let currentQ = 0;
+    let score = 0;
+
+    function loadQuestion() {
+        const q = quizData[currentQ];
+        document.getElementById("stepCounter").innerText = `السؤال ${currentQ + 1} من ${quizData.length}`;
+        document.getElementById("progressFill").style.width = `${((currentQ) / quizData.length) * 100}%`;
+        document.getElementById("problemTitle").innerText = `المسألة: ${q.problem}`;
+
+        const sourceList = document.getElementById("sourceList");
+        const dropList = document.getElementById("dropList");
+        sourceList.innerHTML = "";
+        dropList.innerHTML = "";
+
+        // خلط الخطوات عشوائياً
+        let shuffledIndices = q.steps.map((_, i) => i).sort(() => Math.random() - 0.5);
+
+        shuffledIndices.forEach(originalIdx => {
+            const item = document.createElement("div");
+            item.className = "step-item";
+            item.innerText = q.steps[originalIdx];
+            item.dataset.index = originalIdx;
+
+            // التفاعل بالنقر لنقل العنصر بين الصندوقين
+            item.onclick = function() {
+                if (item.parentElement.id === "sourceList") {
+                    document.getElementById("dropList").appendChild(item);
+                } else {
+                    document.getElementById("sourceList").appendChild(item);
+                }
+            };
+
+            sourceList.appendChild(item);
+        });
+
+        const fb = document.getElementById("feedback");
+        fb.style.display = "none";
+        fb.className = "feedback";
+        
+        const btn = document.getElementById("actionBtn");
+        btn.innerText = "تأكيد الإجابة";
+        btn.onclick = checkAnswer;
+    }
+
+    function checkAnswer() {
+        const dropList = document.getElementById("dropList");
+        const items = dropList.getElementsByClassName("step-item");
+        const q = quizData[currentQ];
+
+        if (items.length !== q.correctOrder.length) {
+            alert("يرجى اختيار جميع خطوات الخوارزمية في صندوق الحل بترتيبها الصحيح أولاً!");
+            return;
+        }
+
+        let userOrder = [];
+        for (let item of items) {
+            userOrder.push(parseInt(item.dataset.index));
+        }
+
+        let isCorrect = userOrder.every((val, index) => val === q.correctOrder[index]);
+
+        const fb = document.getElementById("feedback");
+        fb.style.display = "block";
+
+        if (isCorrect) {
+            score++;
+            fb.className = "feedback correct";
+            fb.innerHTML = `✅ أحسنت! رتبت خطوات الخوارزمية بمنطق سليم 100%.`;
+        } else {
+            fb.className = "feedback incorrect";
+            fb.innerHTML = `❌ الترتيب غير دقيق. اضغط على الخطوات الخاطئة لإرجاعها وتعديل تسلسلها.`;
+        }
+
+        const btn = document.getElementById("actionBtn");
+        if (currentQ < quizData.length - 1) {
+            btn.innerText = "السؤال التالي ➔";
+            btn.onclick = nextQuestion;
+        } else {
+            btn.innerText = "عرض النتيجة النهائية 🏆";
+            btn.onclick = showResults;
+        }
+    }
+
+    function nextQuestion() {
+        currentQ++;
+        loadQuestion();
+    }
+
+    function showResults() {
+        document.getElementById("quizContent").style.display = "none";
+        document.getElementById("resultScreen").style.display = "block";
+        document.getElementById("progressFill").style.width = "100%";
+        document.getElementById("stepCounter").innerText = "تم اكتمال التدريب";
+        document.getElementById("scoreText").innerText = `${score} / ${quizData.length}`;
+    }
+
+    function restartQuiz() {
+        currentQ = 0;
+        score = 0;
+        document.getElementById("quizContent").style.display = "block";
+        document.getElementById("resultScreen").style.display = "none";
+        loadQuestion();
+    }
+
+    loadQuestion();
+</script>
+
+</body>
+</html>
