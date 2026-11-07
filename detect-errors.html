@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اكتشف الأخطاء في المخططات الانسيابية</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f1f5f9; padding: 15px; direction: rtl; margin: 0; color: #0f172a; }
+        .card { background: white; max-width: 550px; margin: auto; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        
+        /* رأس الصفحة والمدرسة والمدرس */
+        .school-header { text-align: center; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px; margin-bottom: 15px; }
+        .school-name { font-size: 14px; color: #64748b; font-weight: 600; }
+        .teacher-name { font-size: 13px; color: #94a3b8; margin-top: 2px; }
+
+        h2 { color: #1e3a8a; text-align: center; margin-top: 0; font-size: 19px; }
+        .subtitle { text-align: center; color: #64748b; font-size: 13px; margin-bottom: 15px; }
+
+        .progress-bar { background: #e2e8f0; border-radius: 10px; height: 10px; width: 100%; margin-bottom: 15px; overflow: hidden; }
+        .progress-fill { background: #2563eb; height: 100%; width: 0%; transition: width 0.3s ease; }
+
+        .svg-container { width: 100%; max-width: 340px; margin: 10px auto; display: block; }
+        
+        .question-box { background: #f8fafc; border-right: 4px solid #2563eb; padding: 12px; margin-top: 15px; border-radius: 6px; }
+        .option-label { display: flex; align-items: center; margin: 8px 0; cursor: pointer; font-size: 13px; background: white; padding: 9px; border: 1px solid #cbd5e1; border-radius: 6px; transition: background 0.2s; }
+        .option-label:hover { background: #f1f5f9; }
+        .option-label input { margin-left: 10px; }
+
+        .btn { display: block; width: 100%; background: #2563eb; color: white; border: none; padding: 11px; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 15px; text-align: center; }
+        .btn:hover { background: #1d4ed8; }
+
+        .feedback { margin-top: 15px; padding: 11px; border-radius: 6px; font-weight: bold; display: none; text-align: center; font-size: 13px; }
+        .feedback.correct { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+        .feedback.incorrect { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+
+        .result-screen { text-align: center; display: none; }
+        .score-circle { width: 90px; height: 90px; border-radius: 50%; background: #1e3a8a; color: white; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: bold; margin: 20px auto; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <!-- رأس الصفحة المطلوب -->
+    <div class="school-header">
+        <div class="school-name">مدرسة اليرموك للتعليم الأساسي والثانوي</div>
+        <div class="teacher-name">إعداد وتنسيق معلم المادة: أ. الشريف علي الكور</div>
+    </div>
+
+    <h2>اكتشف الأخطاء في المخططات الانسيابية 🔍</h2>
+    <div class="subtitle" id="stepCounter">السؤال 1 من 10</div>
+    
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div id="quizContent">
+        <div id="svgContainer"></div>
+
+        <div class="question-box">
+            <strong id="questionText" style="font-size: 14px;">جاري تحميل السؤال...</strong>
+            <div id="optionsContainer" style="margin-top: 8px;"></div>
+        </div>
+
+        <div id="feedback" class="feedback"></div>
+
+        <button id="actionBtn" class="btn" onclick="checkAnswer()">تأكيد الإجابة</button>
+    </div>
+
+    <div id="resultScreen" class="result-screen">
+        <h3>أحسنت! أكملت بنك الأسئلة بنجاح</h3>
+        <p>درجتك النهائية في اكتشاف الأخطاء:</p>
+        <div class="score-circle" id="scoreText">0/10</div>
+        <button class="btn" onclick="restartQuiz()">إعادة الاختبار 🔄</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        {
+            svg: `<svg class="svg-container" viewBox="0 0 320 380" xmlns="http://www.w3.org/2000/svg">
+                <defs><marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/></marker></defs>
+                <rect x="85" y="10" width="150" height="35" rx="17" fill="#1e3a8a" stroke="#0f172a" stroke-width="2"/><text x="160" y="32" fill="white" font-size="13" font-weight="bold" text-anchor="middle">البداية (Start)</text>
+                <line x1="160" y1="45" x2="160" y2="65" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+                <rect x="75" y="70" width="170" height="40" rx="4" fill="#dc2626" stroke="#991b1b" stroke-width="2" stroke-dasharray="4"/><text x="160" y="95" fill="white" font-size="13" font-weight="bold" text-anchor="middle">اقرأ القيمة (X)</text>
+                <line x1="160" y1="110" x2="160" y2="135" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+                <polygon points="160,140 225,180 160,220 95,180" fill="#d97706" stroke="#b45309" stroke-width="2"/><text x="160" y="185" fill="white" font-size="13" font-weight="bold" text-anchor="middle">هل X > 0 ؟</text>
+                <line x1="160" y1="220" x2="160" y2="255" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/><text x="175" y="240" fill="#16a34a" font-size="12" font-weight="bold">نعم</text>
+                <path d="M 95 180 L 40 180 L 40 330 L 75 330" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/><text x="65" y="170" fill="#dc2626" font-size="12" font-weight="bold">لا</text>
+                <rect x="85" y="260" width="150" height="35" rx="4" fill="#16a34a" stroke="#15803d" stroke-width="2"/><text x="160" y="282" fill="white" font-size="13" font-weight="bold" text-anchor="middle">اطبع "موجب"</text>
+                <line x1="160" y1="295" x2="160" y2="315" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+                <rect x="85" y="320" width="150" height="35" rx="17" fill="#1e3a8a" stroke="#0f172a" stroke-width="2"/><text x="160" y="342" fill="white" font-size="13" font-weight="bold" text-anchor="middle">النهاية (End)</text>
+            </svg>`,
+            question: "1. أي صندوق يحتوي على خطأ في اختيار الشكل الهندسي المعتمد للعملية؟",
+            options: [
+                "صندوق البداية والنهاية",
+                "صندوق قراءة القيمة X (استخدم المستطيل بدلاً من متوازي الأضلاع)",
+                "صندوق فحص الشرط",
+                "المخطط سليم ولا يوجد خطأ"
+            ],
+            correct: 1,
+            explain: "صحيح! الإدخال يُمثل بمتوازي الأضلاع وليس المستطيل."
+        },
+        {
+            svg: `<svg class="svg-container" viewBox="0 0 320 330" xmlns="http://www.w3.org/2000/svg">
+                <defs><marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/></marker></defs>
+                <rect x="85" y="10" width="150" height="35" rx="17" fill="#1e3a8a" stroke="#0f172a" stroke-width="2"/><text x="160" y="32" fill="white" font-size="13" font-weight="bold" text-anchor="middle">Start</text>
+                <line x1="160" y1="45" x2="160" y2="65" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+                <polygon points="95,70 245,70 225,105 75,105" fill="#0284c7" stroke="#0369a1" stroke-width="2"/><text x="160" y="92" fill="white" font-size="13" font-weight="bold" text-anchor="middle">ادخل A = 10 , B = 0</text>
+                <line x1="160" y1="105" x2="160" y2="125" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+                <rect x="75" y="130" width="170" height="40" rx="4" fill="#dc2626" stroke="#991b1b" stroke-width="2" stroke-dasharray="4"/><text x="160" y="155" fill="white" font-size="13" font-weight="bold" text-anchor="middle">Result = A / B</text>
+                <line x1="160" y1="170" x2="160" y2="195" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+                <polygon points="95,200 245,200 225,235 75,235" fill="#0284c7" stroke="#0369a1" stroke-width="2"/><text x="160" y="222" fill="white" font-size="13" font-weight="bold" text-anchor="middle">اطبع Result</text>
+                <line x1="160" y1="235" x2="160" y2="255" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+                <rect x="85" y="255" width="150" height="35" rx="17" fill="#1e3a8a" stroke="#0f172a" stroke-width="2"/><text x="160" y="277" fill="white" font-size="13" font-weight="bold" text-anchor="middle">End</text>
+            </svg>`,
+            question: "2. ما هو الخطأ المنطقي الخطير في هذا المخطط الحسابي؟",
+            options: [
+                "استخدام متوازي الأضلاع للإدخال",
+                "القسمة على الصفر (B = 0) مما يسبب خطأ برمجياً فادحاً",
+                "استخدام مستطيل للعملية",
+                "لا يوجد خطأ"
+            ],
+            correct: 1,
+            explain: "أحسنت! القسمة على الصفر تتسبب في انهيار البرنامج وتوقف التنفيذ."
+        },
+        {
+            svg: `<svg class="svg-container" viewBox="0 0 320 310" xmlns="http://www.w3.org/2000/svg">
+                <defs><marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/></marker></defs>
+                <rect x="85" y="10" width="150" height="35" rx="17" fill="#1e3a8a" stroke="#0f172a" stroke-width="2"/><text x="160" y="32" fill="white" font-size="13" font-weight="bold" text-anchor="middle">Start</text>
+                <line x1="160" y1="45" x2="160" y2="65" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+                <polygon points="95,70 245,70 225,105 75,105" fill="#0284c7" stroke="#0369a1" stroke-width="2"/><text x="160" y="92" fill="white" font-size="13" font-weight="bold" text-anchor="middle">ادخل A , B</text>
+                <line x1="160" y1="105" x2="160" y2="125" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+                <polygon points="95,130 245,130 225,165 75,165" fill="#dc2626" stroke="#991b1b" stroke-width="2" stroke-dasharray="4"/><text x="160" y="152" fill="white" font-size="13" font-weight="bold" text-anchor="middle">Sum = A + B</text>
+                <line x1="160" y1="165" x2="160" y2="190" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+                <polygon points="95,195 245,195 225,230 75,230" fill="#0284c7" stroke="#0369a1" stroke-width="2"/><text x="160" y="217" fill="white" font-size="13" font-weight="bold" text-anchor="middle">اطبع Sum</text>
+                <line x1="160" y1="230" x2="160" y2="245" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+                <rect x="85" y="245" width="150" height="30" rx="15" fill="#1e3a8a" stroke="#0f172a" stroke-width="2"/><text x="160" y="265" fill="white" font-size="12" font-weight="bold" text-anchor="middle">End</text>
+            </svg>`,
+            question: "3. ما هو الخطأ الهندسي في خطوة جمع العددين (Sum = A + B)؟",
+            options: [
+                "استخدام المستطيل",
+                "استخدام متوازي الأضلاع لعملية معالجة حسابية بدلاً من المستطيل",
+                "استخدام الكبسولة للبداية",
+                "لا يوجد خطأ"
+            ],
+            correct: 1,
+            explain: "ممتاز! المعالجة والحسابات تُرسم بالمستطيل وليست بمتوازي الأضلاع."
+        },
+        {
+            svg: `<svg class="svg-container" viewBox="0 0 320 370" xmlns="http://www.w3.org/2000/svg">
+                <defs><marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/></marker></defs>
+                <rect x="85" y="10" width="150" height="35" rx="17" fill="#1e3a8a" stroke="#0f172a" stroke-width="2"/><text x="160" y="32" fill="white" font-size="13" font-weight="bold" text-anchor="middle">Start (C = 1)</text>
+                <line x1="160" y1="45" x2="160" y2="65" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+                <polygon points="160,70 225,105 160,140 95,105" fill="#d97706" stroke="#b45309" stroke-width="2"/><text x="160" y="110" fill="white" font-size="13" font-weight="bold" text-anchor="middle">هل C <= 5 ؟</text>
+                <line x1="160" y1="140" x2="160" y2="165" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/><text x="175" y="155" fill="#16a34a" font-size="12" font-weight="bold">نعم</text>
+                <polygon points="95,170 245,170 225,205 75,205" fill="#0284c7" stroke="#0369a1" stroke-width="2"/><text x="160" y="192" fill="white" font-size="13" font-weight="bold" text-anchor="middle">اطبع C</text>
+                <path d="M 75 190 L 30 190 L 30 105 L 95 105" fill="none" stroke="#dc2626" stroke-width="2" stroke-dasharray="4" marker-end="url(#arrow)"/>
+                <path d="M 225 105 L 280 105 L 280 280 L 235 280" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/><text x="245" y="95" fill="#dc2626" font-size="12" font-weight="bold">لا</text>
+                <rect x="85" y="265" width="150" height="35" rx="17" fill="#1e3a8a" stroke="#0f172a" stroke-width="2"/><text x="160" y="287" fill="white" font-size="13" font-weight="bold" text-anchor="middle">End</text>
+            </svg>`,
+            question: "4. تتبع الحلقة أعلاه، ما المشكلة المنطقية التي تتسبب في توقف النظام أو دخوله في حلقة لا تنتهي؟",
+            options: [
+                "البرنامج يعمل بنجاح",
+                "حلقة تكرارية غير منتهية (Infinite Loop) لعدم وجود زيادة في العداد C = C + 1",
+                "شرط النهاية خاطئ",
+                "شكل البداية غير صحيح"
+            ],
+            correct: 1,
+            explain: "أحسنت! غياب تحديث العداد يبقي قيمته ثابته للأبد بدون خروج."
+        },
+        {
+            svg: `<svg class="svg-container" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg">
+                <defs><marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/></marker></defs>
+                <rect x="85" y="10" width="150" height="35" rx="17" fill="#1e3a8a" stroke="#0f172a" stroke-width="2"/><text x="160" y="32" fill="white" font-size="13" font-weight="bold" text-anchor="middle">Start</text>
+                <line x1="160" y1="45" x2="160" y2="65" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+                <rect x="75" y="70" width="170" height="35" rx="4" fill="#dc2626" stroke="#991b1b" stroke-width="2" stroke-dasharray="4"/><text x="160" y="92" fill="white" font-size="13" font-weight="bold" text-anchor="middle">Counter = 100</text>
+                <line x1="160" y1="105" x2="160" y2="125" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+                <polygon points="160,130 225,165 160,200 95,165" fill="#d97706" stroke="#b45309" stroke-width="2"/><text x="160" y="170" fill="white" font-size="13" font-weight="bold" text-anchor="middle">هل Counter <= 10 ؟</text>
+                <line x1="160" y1="200" x2="160" y2="225" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/><text x="175" y="215" fill="#16a34a" font-size="12" font-weight="bold">نعم</text>
+                <path d="M 95 165 L 40 165 L 40 260 L 85 260" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/><text x="65" y="155" fill="#dc2626" font-size="12" font-weight="bold">لا</text>
+                <rect x="85" y="245" width="150" height="35" rx="17" fill="#1e3a8a" stroke="#0f172a" stroke-width="2"/><text x="160" y="267" fill="white" font-size="13" font-weight="bold" text-anchor="middle">End</text>
+            </svg>`,
+            question: "5. نريد طباعة الأعداد من 1 إلى 10، ما الخطأ في قيمة البداية للعداد أعلاه (Counter = 100)؟",
+            options: [
+                "القيمة الابتدائية خاطئة لأنها أكبر من شرط التوقف فتنتقل لـ (لا) وتتوقف فوراً",
+                "شكل المستطيل خاطئ",
+                "الشرط صحيح ولا يوجد خطأ",
+                "نوع المتغير نصي"
+            ],
+            correct: 0,
+            explain: "صحيح! البدء بقيمة 100 يجعل الشرط يتحقق بـ (لا) مباشرة دون تنفيذ أي تكرار."
+        },
+        {
+            svg: `<svg class="svg-container" viewBox="0 0 320 280" xmlns="http://www.w3.org/2000/svg">
+                <defs><marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/></marker></defs>
+                <rect x="85" y="10" width="150" height="35" rx="17" fill="#1e3a8a" stroke="#0f172a" stroke-width="2"/><text x="160" y="32" fill="white" font-size="13" font-weight="bold" text-anchor="middle">Start (N = 1)</text>
+                <line x1="160" y1="45" x2="160" y2="65" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+                <polygon points="95,70 245,70 225,105 75,105" fill="#0284c7" stroke="#0369a1" stroke-width="2"/><text x="160" y="92" fill="white" font-size="13" font-weight="bold" text-anchor="middle">اطبع N</text>
+                <line x1="160" y1="105" x2="160" y2="125" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+                <rect x="85" y="130" width="150" height="35" rx="4" fill="#dc2626" stroke="#991b1b" stroke-width="2" stroke-dasharray="4"/><text x="160" y="152" fill="white" font-size="13" font-weight="bold" text-anchor="middle">N = N + 1</text>
+                <path d="M 85 147 L 40 147 L 40 87 L 95 87" fill="none" stroke="#dc2626" stroke-width="2" stroke-dasharray="4" marker-end="url(#arrow)"/>
+                <rect x="85" y="210" width="150" height="35" rx="17" fill="#1e3a8a" stroke="#0f172a" stroke-width="2"/><text x="160" y="232" fill="white" font-size="13" font-weight="bold" text-anchor="middle">End</text>
+            </svg>`,
+            question: "6. ما هو النقص الهيكلي أو المنطقي الظاهر في حلقة التكرار أعلاه؟",
+            options: [
+                "غياب شكل اتخاذ القرار (المعين) لوضع شرط الخروج، مما يجعل الحلقة تدور إلى الأبد",
+                "العملية الحسابية خاطئة",
+                "خطوة الطباعة غير صحيحة",
+                "المخطط سليم"
+            ],
+            correct: 0,
+            explain: "ممتاز! لا توجد حلقة صحيحة بدون شرط اختبار (معين) يحدد متى تتوقف."
+        },
+        {
+            svg: `<svg class="svg-container" viewBox="0 0 320 280" xmlns="http://www.w3.org/2000/svg">
+                <defs><marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/></marker></defs>
+                <rect x="85" y="10" width="150" height="35" rx="17" fill="#1e3a8a" stroke="#0f172a" stroke-width="2"/><text x="160" y="32" fill="white" font-size="13" font-weight="bold" text-anchor="middle">End</text>
+                <line x1="160" y1="45" x2="160" y2="65" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+                <polygon points="95,70 245,70 225,105 75,105" fill="#0284c7" stroke="#0369a1" stroke-width="2"/><text x="160" y="92" fill="white" font-size="13" font-weight="bold" text-anchor="middle">ادخل X</text>
+                <line x1="160" y1="105" x2="160" y2="125" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+                <rect x="85" y="130" width="150" height="35" rx="4" fill="#16a34a" stroke="#15803d" stroke-width="2"/><text x="160" y="152" fill="white" font-size="13" font-weight="bold" text-anchor="middle">Y = X * 5</text>
+                <line x1="160" y1="165" x2="160" y2="185" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+                <rect x="85" y="190" width="150" height="35" rx="17" fill="#dc2626" stroke="#991b1b" stroke-width="2" stroke-dasharray="4"/><text x="160" y="212" fill="white" font-size="13" font-weight="bold" text-anchor="middle">البداية (Start)</text>
+            </svg>`,
+            question: "7. ما هو الخطأ الفادح المتعلق ببنية تسلسل المخطط الانسيابي في هذا الرسم؟",
+            options: [
+                "تم عكس أماكن البداية والنهاية (بدأ البرنامج بـ End وانتهى بـ Start)",
+                "استخدام المستطيل بشكل خاطئ",
+                "عملية الحساب غير صحيحة",
+                "لا يوجد خطأ"
+            ],
+            correct: 0,
+            explain: "أحسنت! التدفق يبدأ بـ Start وينتهي بـ End وليس العكس."
+        },
+        {
+            svg: `<svg class="svg-container" viewBox="0 0 320 280" xmlns="http://www.w3.org/2000/svg">
+                <defs><marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/></marker></defs>
+                <rect x="85" y="10" width="150" height="35" rx="17" fill="#1e3a8a" stroke="#0f172a" stroke-width="2"/><text x="160" y="32" fill="white" font-size="13" font-weight="bold" text-anchor="middle">Start</text>
+                <line x1="160" y1="45" x2="160" y2="65" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+                <polygon points="95,70 245,70 225,105 75,105" fill="#dc2626" stroke="#991b1b" stroke-width="2" stroke-dasharray="4"/><text x="160" y="92" fill="white" font-size="13" font-weight="bold" text-anchor="middle">X = 10</text>
+                <line x1="160" y1="105" x2="160" y2="125" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+                <polygon points="95,130 245,130 225,165 75,165" fill="#0284c7" stroke="#0369a1" stroke-width="2"/><text x="160" y="152" fill="white" font-size="13" font-weight="bold" text-anchor="middle">اطبع X</text>
+                <line x1="160" y1="165" x2="160" y2="185" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+                <rect x="85" y="190" width="150" height="35" rx="17" fill="#1e3a8a" stroke="#0f172a" stroke-width="2"/><text x="160" y="212" fill="white" font-size="13" font-weight="bold" text-anchor="middle">End</text>
+            </svg>`,
+            question: "8. تعيين قيمة مباشرة لمتغير (X = 10) داخل المخطط، أي شكل هندسي استُخدم بشكل خاطئ؟",
+            options: [
+                "استخدام متوازي الأضلاع لعملية إسناد قيمة، والصحيح استخدام المستطيل",
+                "شكل النهاية",
+                "خطوة الطباعة",
+                "المخطط صحيح"
+            ],
+            correct: 0,
+            explain: "ممتاز! عمليات الإسناد والمعالجة تُمثل بالمستطيل وليس متوازي الأضلاع."
+        },
+        {
+            svg: `<svg class="svg-container" viewBox="0 0 320 280" xmlns="http://www.w3.org/2000/svg">
+                <defs><marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/></marker></defs>
+                <rect x="85" y="10" width="150" height="35" rx="17" fill="#1e3a8a" stroke="#0f172a" stroke-width="2"/><text x="160" y="32" fill="white" font-size="13" font-weight="bold" text-anchor="middle">Start</text>
+                <line x1="160" y1="45" x2="160" y2="65" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+                <polygon points="95,70 245,70 225,105 75,105" fill="#0284c7" stroke="#0369a1" stroke-width="2"/><text x="160" y="92" fill="white" font-size="13" font-weight="bold" text-anchor="middle">ادخل N</text>
+                <line x1="160" y1="105" x2="160" y2="125" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+                <rect x="85" y="130" width="150" height="35" rx="4" fill="#16a34a" stroke="#15803d" stroke-width="2"/><text x="160" y="152" fill="white" font-size="13" font-weight="bold" text-anchor="middle">Fact = Fact * N</text>
+                <line x1="160" y1="165" x2="160" y2="185" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+                <polygon points="95,190 245,190 225,225 75,225" fill="#0284c7" stroke="#0369a1" stroke-width="2"/><text x="160" y="212" fill="white" font-size="13" font-weight="bold" text-anchor="middle">اطبع Fact</text>
+                <line x1="160" y1="225" x2="160" y2="245" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+                <rect x="85" y="245" width="150" height="25" rx="12" fill="#1e3a8a" stroke="#0f172a" stroke-width="2"/><text x="160" y="262" fill="white" font-size="12" font-weight="bold" text-anchor="middle">End</text>
+            </svg>`,
+            question: "9. تأمل خطوات المخطط أعلاه بدقة، هل يحتوي على أي أخطاء هندسية أو منطقية ظاهرة؟",
+            options: [
+                "نعم، خطوة المعالجة الحسابية خاطئة",
+                "لا، المخطط متوافق هندسياً ومنطقياً 100% مع الأشكال القياسية",
+                "خطوة الإدخال خاطئة",
+                "خطوة النهاية خاطئة"
+            ],
+            correct: 1,
+            explain: "أحسنت! المخطط سليم ومتوافق تماماً: بداية ونهاية بالكبسولة، إدخال وإخراج بمتوازي الأضلاع، ومعالجة بالمستطيل."
+        },
+        {
+            svg: `<svg class="svg-container" viewBox="0 0 320 330" xmlns="http://www.w3.org/2000/svg">
+                <defs><marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/></marker></defs>
+                <rect x="85" y="10" width="150" height="35" rx="17" fill="#1e3a8a" stroke="#0f172a" stroke-width="2"/><text x="160" y="32" fill="white" font-size="13" font-weight="bold" text-anchor="middle">Start</text>
+                <line x1="160" y1="45" x2="160" y2="65" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+                <polygon points="95,70 245,70 225,105 75,105" fill="#0284c7" stroke="#0369a1" stroke-width="2"/><text x="160" y="92" fill="white" font-size="13" font-weight="bold" text-anchor="middle">ادخل الدرجة (Mark)</text>
+                <line x1="160" y1="105" x2="160" y2="125" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+                <polygon points="160,130 225,165 160,200 95,165" fill="#d97706" stroke="#b45309" stroke-width="2"/><text x="160" y="170" fill="white" font-size="13" font-weight="bold" text-anchor="middle">هل Mark >= 50 ؟</text>
+                <line x1="160" y1="200" x2="160" y2="225" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/><text x="175" y="215" fill="#16a34a" font-size="12" font-weight="bold">نعم</text>
+                <rect x="85" y="230" width="150" height="35" rx="4" fill="#dc2626" stroke="#991b1b" stroke-width="2" stroke-dasharray="4"/><text x="160" y="252" fill="white" font-size="13" font-weight="bold" text-anchor="middle">اطبع "راسب"</text>
+                <line x1="160" y1="265" x2="160" y2="285" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+                <rect x="85" y="290" width="150" height="30" rx="15" fill="#1e3a8a" stroke="#0f172a" stroke-width="2"/><text x="160" y="310" fill="white" font-size="12" font-weight="bold" text-anchor="middle">End</text>
+            </svg>`,
+            question: "10. تتضمن الشرط فحص (Mark >= 50)، ما هو الخطأ المنطقي في مخرجات فرع (نعم) أدناه؟",
+            options: [
+                "تمت طباعة \"راسب\" رغم أن الشرط يفحص النجاح (Mark >= 50)، والصحيح طباعة \"ناجح\"",
+                "استخدام المستطيل للطباعة",
+                "شكل المعين غير صحيح",
+                "لا يوجد خطأ"
+            ],
+            correct: 0,
+            explain: "ممتاز! خطأ منطقي في الرسالة المطبوعة؛ فالشرط يمثل الدرجات العليا (>= 50) وتتم طباعة كلمة راسب خطأً."
+        }
+    ];
+
+    let currentQ = 0;
+    let score = 0;
+    let selectedOption = null;
+
+    function loadQuestion() {
+        selectedOption = null;
+        const q = quizData[currentQ];
+        document.getElementById("stepCounter").innerText = `السؤال ${currentQ + 1} من ${quizData.length}`;
+        document.getElementById("progressFill").style.width = `${((currentQ) / quizData.length) * 100}%`;
+        
+        document.getElementById("svgContainer").innerHTML = q.svg;
+        document.getElementById("questionText").innerText = q.question;
+        
+        const optionsDiv = document.getElementById("optionsContainer");
+        optionsDiv.innerHTML = "";
+        
+        q.options.forEach((opt, idx) => {
+            optionsDiv.innerHTML += `
+                <label class="option-label">
+                    <input type="radio" name="quizOpt" value="${idx}" onclick="selectedOption = ${idx}">
+                    ${opt}
+                </label>
+            `;
+        });
+
+        const fb = document.getElementById("feedback");
+        fb.style.display = "none";
+        fb.className = "feedback";
+        
+        const btn = document.getElementById("actionBtn");
+        btn.innerText = "تأكيد الإجابة";
+        btn.onclick = checkAnswer;
+    }
+
+    function checkAnswer() {
+        if (selectedOption === null) {
+            alert("يرجى اختيار إجابة أولاً قبل التأكيد!");
+            return;
+        }
+
+        const q = quizData[currentQ];
+        const fb = document.getElementById("feedback");
+        fb.style.display = "block";
+
+        if (selectedOption === q.correct) {
+            score++;
+            fb.className = "feedback correct";
+            fb.innerHTML = `✅ ${q.explain}`;
+        } else {
+            fb.className = "feedback incorrect";
+            fb.innerHTML = `❌ إجابة خاطئة. الإجابة الصحيحة هي: (${q.options[q.correct]})`;
+        }
+
+        const btn = document.getElementById("actionBtn");
+        if (currentQ < quizData.length - 1) {
+            btn.innerText = "السؤال التالي ➔";
+            btn.onclick = nextQuestion;
+        } else {
+            btn.innerText = "عرض النتيجة النهائية 🏆";
+            btn.onclick = showResults;
+        }
+    }
+
+    function nextQuestion() {
+        currentQ++;
+        loadQuestion();
+    }
+
+    function showResults() {
+        document.getElementById("quizContent").style.display = "none";
+        document.getElementById("resultScreen").style.display = "block";
+        document.getElementById("progressFill").style.width = "100%";
+        document.getElementById("stepCounter").innerText = "تم اكتمال الاختبار";
+        document.getElementById("scoreText").innerText = `${score} / ${quizData.length}`;
+    }
+
+    function restartQuiz() {
+        currentQ = 0;
+        score = 0;
+        document.getElementById("quizContent").style.display = "block";
+        document.getElementById("resultScreen").style.display = "none";
+        loadQuestion();
+    }
+
+    loadQuestion();
+</script>
+
+</body>
+</html>
