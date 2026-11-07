@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أوجد ناتج الخوارزمية ووظيفتها</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f1f5f9; padding: 15px; direction: rtl; margin: 0; color: #0f172a; }
+        .card { background: white; max-width: 550px; margin: auto; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        
+        /* رأس الصفحة والمدرسة والمدرس */
+        .school-header { text-align: center; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px; margin-bottom: 15px; }
+        .school-name { font-size: 14px; color: #64748b; font-weight: 600; }
+        .teacher-name { font-size: 13px; color: #94a3b8; margin-top: 2px; }
+
+        h2 { color: #1e3a8a; text-align: center; margin-top: 0; font-size: 19px; }
+        .subtitle { text-align: center; color: #64748b; font-size: 13px; margin-bottom: 15px; }
+
+        .progress-bar { background: #e2e8f0; border-radius: 10px; height: 10px; width: 100%; margin-bottom: 15px; overflow: hidden; }
+        .progress-fill { background: #2563eb; height: 100%; width: 0%; transition: width 0.3s ease; }
+
+        /* صندوق عرض الخوارزمية باللغة العربية */
+        .algorithm-display { background: #0f172a; color: #38bdf8; padding: 14px 16px; border-radius: 8px; font-size: 14px; line-height: 1.8; margin-bottom: 15px; border-right: 4px solid #38bdf8; text-align: right; }
+        .algo-title { font-family: 'Segoe UI', sans-serif; color: #facc15; font-size: 13px; font-weight: bold; margin-bottom: 6px; }
+
+        .question-box { background: #f8fafc; border-right: 4px solid #2563eb; padding: 12px; margin-top: 12px; border-radius: 6px; }
+        .q-label { font-size: 14px; font-weight: bold; color: #1e3a8a; display: block; margin-bottom: 8px; }
+        
+        .option-label { display: flex; align-items: center; margin: 6px 0; cursor: pointer; font-size: 13px; background: white; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; transition: background 0.2s; }
+        .option-label:hover { background: #f1f5f9; }
+        .option-label input { margin-left: 10px; }
+
+        .btn { display: block; width: 100%; background: #2563eb; color: white; border: none; padding: 11px; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 15px; text-align: center; }
+        .btn:hover { background: #1d4ed8; }
+
+        .feedback { margin-top: 15px; padding: 11px; border-radius: 6px; font-weight: bold; display: none; text-align: center; font-size: 13px; }
+        .feedback.correct { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+        .feedback.incorrect { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+
+        .result-screen { text-align: center; display: none; }
+        .score-circle { width: 90px; height: 90px; border-radius: 50%; background: #1e3a8a; color: white; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: bold; margin: 20px auto; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <!-- رأس الصفحة -->
+    <div class="school-header">
+        <div class="school-name">مدرسة اليرموك للتعليم الأساسي والثانوي</div>
+        <div class="teacher-name">إعداد وتنسيق معلم المادة: أ. الشريف علي الكور</div>
+    </div>
+
+    <h2>أوجد ناتج الخوارزمية ووظيفتها ⚙️</h2>
+    <div class="subtitle" id="stepCounter">المسألة 1 من 10</div>
+    
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div id="quizContent">
+        <!-- منطقة عرض الخوارزمية بالعربية -->
+        <div class="algo-title">📝 اقرأ خطوات الخوارزمية وتتبعها جيداً:</div>
+        <div class="algorithm-display" id="algoCode"></div>
+
+        <!-- 1. سؤال تحديد الناتج النهائي -->
+        <div class="question-box">
+            <span class="q-label">أولاً: ما هو الناتج النهائي الذي سيتم طباعته عند تنفيذ هذه الخطوات؟</span>
+            <div id="outputOptionsContainer"></div>
+        </div>
+
+        <!-- 2. سؤال تحديد الوظيفة أو الهدف -->
+        <div class="question-box">
+            <span class="q-label">ثانياً: ما هي الوظيفة الأساسية التي تهدف إليها هذه الخوارزمية؟</span>
+            <div id="purposeOptionsContainer"></div>
+        </div>
+
+        <div id="feedback" class="feedback"></div>
+
+        <button id="actionBtn" class="btn" onclick="checkAnswer()">تأكيد الإجابة</button>
+    </div>
+
+    <!-- شاشة النتيجة النهائية -->
+    <div id="resultScreen" class="result-screen">
+        <h3>أحسنت! أكملت اختبار تتبع الخوارزميات بنجاح</h3>
+        <p>درجتك النهائية في تحليل وتتبع الخوارزميات:</p>
+        <div class="score-circle" id="scoreText">0/10</div>
+        <button class="btn" onclick="restartQuiz()">إعادة التتبع 🔄</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        {
+            code: `1. البداية.<br>2. أدخل قيمة العدد الأول (س = 15).<br>3. أدخل قيمة العدد الثاني (ص = 5).<br>4. احسب المجموع = س + ص.<br>5. اطبع قيمة المجموع.<br>6. النهاية.`,
+            outputOptions: ["20", "10", "155", "75"],
+            correctOutput: 0,
+            purposeOptions: [
+                "حساب وطباعة مجموع عددين",
+                "حساب حاصل ضرب عددين",
+                "مقارنة أي العددين أكبر",
+                "حساب الفرق بين عددين"
+            ],
+            correctPurpose: 0,
+            explain: "المجموع = 15 + 5 = 20، ووظيفة الخوارزمية هي جمع العددين."
+        },
+        {
+            code: `1. البداية.<br>2. أدخل الدرجة = 45.<br>3. هل الدرجة أكبر من أو تساوي 50 ؟<br>4. إذا كان (نعم): اطبع كلمة (ناجح).<br>5. إذا كان (لا): اطبع كلمة (راسب).<br>6. النهاية.`,
+            outputOptions: ["راسب", "ناجح", "45", "50"],
+            correctOutput: 0,
+            purposeOptions: [
+                "تقييم نتيجة الطالب واختبار النجاح أو الرسوب",
+                "حساب المعدل المئوي للدرجة",
+                "إضافة درجات إضافية للطالب",
+                "طباعة التقدير الممتاز"
+            ],
+            correctPurpose: 0,
+            explain: "الدرجة 45 أقل من 50، لذلك يتحقق شرط (لا) فتتم طباعة كلمة (راسب)."
+        },
+        {
+            code: `1. البداية.<br>2. اجعل قيمة العداد (ع = 1).<br>3. هل العداد (ع) أصغر من أو يساوي 3 ؟<br>4. إذا كان (نعم): اطبع قيمة (ع)، ثم أضف للعداد (ع = ع + 1) وارجع للخطوة 3.<br>5. إذا كان (لا): اخرج من التكرار.<br>6. النهاية.`,
+            outputOptions: ["1 2 3", "1 2 3 4", "3", "0 1 2 3"],
+            correctOutput: 0,
+            purposeOptions: [
+                "طباعة الأعداد من 1 إلى 3 بترتيب متسلسل",
+                "حساب مجموع الأعداد من 1 إلى 3",
+                "طباعة الأعداد الزوجية فقط",
+                "طباعة العدد 3 ثلاث مرات"
+            ],
+            correctPurpose: 0,
+            explain: "العداد يبدأ من 1 ويزداد بمقدار 1 في كل دورة حتى يصل إلى 3، فتكون النتيجة المطبوعة: 1 2 3."
+        },
+        {
+            code: `1. البداية.<br>2. أدخل العدد (ن = 7).<br>3. احسب باقي قسمة العدد على 2.<br>4. إذا كان باقي القسمة يساوي صفراً: اطبع (عدد زوجي).<br>5. إذا كان باقي القسمة لا يساوي صفراً: اطبع (عدد فردي).<br>6. النهاية.`,
+            outputOptions: ["عدد فردي", "عدد زوجي", "7", "صفر"],
+            correctOutput: 0,
+            purposeOptions: [
+                "فحص وتحديد ما إذا كان العدد فردياً أم زوجياً",
+                "حساب ناتج القسمة المطولة",
+                "طباعة الأعداد الأولية فقط",
+                "مقارنة العددين 7 و 2"
+            ],
+            correctPurpose: 0,
+            explain: "باقي قسمة 7 على 2 هو 1 (لا يساوي صفراً)، إذن العدد فردي وتتم طباعة (عدد فردي)."
+        },
+        {
+            code: `1. البداية.<br>2. أدخل الطول = 6.<br>3. أدخل العرض = 4.<br>4. المساحة = الطول × العرض.<br>5. اطبع قيمة المساحة.<br>6. النهاية.`,
+            outputOptions: ["24", "10", "20", "12"],
+            correctOutput: 0,
+            purposeOptions: [
+                "حساب مساحة المستطيل",
+                "حساب محيط المستطيل",
+                "حساب مساحة المربع",
+                "حساب حجم الصندوق"
+            ],
+            correctPurpose: 0,
+            explain: "المساحة = الطول × العرض (6 × 4 = 24)، والهدف هو إيجاد مساحة المستطيل."
+        },
+        {
+            code: `1. البداية.<br>2. أدخل العدد الأول (أ = 10).<br>3. أدخل العدد الثاني (ب = 20).<br>4. هل العدد (أ) أكبر من العدد (ب) ؟<br>5. إذا كان (نعم): اطبع العدد (أ).<br>6. إذا كان (لا): اطبع العدد (ب).<br>7. النهاية.`,
+            outputOptions: ["20", "10", "30", "لا شيء"],
+            correctOutput: 0,
+            purposeOptions: [
+                "تحديد وطباعة العدد الأكبر بين قيمتين",
+                "تحديد وطباعة العدد الأصغر بين قيمتين",
+                "حساب مجموع العددين",
+                "فحص تساوى العددين"
+            ],
+            correctPurpose: 0,
+            explain: "بما أن (10 > 20) غير صحيح، سيتجه البرنامج إلى فرع (لا) ويطبع قيمة (ب) والتي تساوي 20."
+        },
+        {
+            code: `1. البداية.<br>2. اجعل المجموع الكلي = 0 ، والعداد (ع) = 1.<br>3. أضف قيمة العداد (ع) إلى المجموع الكلي.<br>4. زد قيمة العداد بمقدار 1 (ع = ع + 1).<br>5. هل العداد (ع) أصغر من أو يساوي 3 ؟<br>&nbsp;&nbsp;&nbsp;&nbsp;- إذا كان (نعم): ارجع لتكرار الخطوة رقم 3.<br>&nbsp;&nbsp;&nbsp;&nbsp;- إذا كان (لا): اخرج من الحلقة.<br>6. اطبع قيمة المجموع الكلي.<br>7. النهاية.`,
+            outputOptions: ["6", "3", "4", "1"],
+            correctOutput: 0,
+            purposeOptions: [
+                "حساب المجموع التراكمي للأعداد من 1 إلى 3 (1+2+3)",
+                "طباعة الأعداد من 1 إلى 3 فقط",
+                "حساب حاصل ضرب الأعداد",
+                "إيجاد متوسط الأعداد"
+            ],
+            correctPurpose: 0,
+            explain: "تتبع الحلقات: (عند ع=1: المجموع=1)، (عند ع=2: المجموع=1+2=3)، (عند ع=3: المجموع=3+3=6)، وعندما يصبح ع=4 يخرج وتتم طباعة 6."
+        },
+        {
+            code: `1. البداية.<br>2. أدخل طول ضلع المربع (ل = 5).<br>3. المحيط = طول الضلع × 4.<br>4. اطبع قيمة المحيط.<br>5. النهاية.`,
+            outputOptions: ["20", "25", "10", "9"],
+            correctOutput: 0,
+            purposeOptions: [
+                "حساب محيط المربع",
+                "حساب مساحة المربع",
+                "حساب مساحة المستطيل",
+                "حساب طول الضلع"
+            ],
+            correctPurpose: 0,
+            explain: "محيط المربع = طول الضلع × 4 (5 × 4 = 20)."
+        },
+        {
+            code: `1. البداية.<br>2. أدخل العدد (س = -4).<br>3. هل العدد (س) أكبر من أو يساوي الصفر ؟<br>4. إذا كان (نعم): اطبع (عدد موجب).<br>5. إذا كان (لا): اطبع (عدد سالب).<br>6. النهاية.`,
+            outputOptions: ["عدد سالب", "عدد موجب", "-4", "صفر"],
+            correctOutput: 0,
+            purposeOptions: [
+                "فحص إشارة العدد هل هو موجب أم سالب",
+                "تحويل العدد السالب إلى موجب",
+                "حساب القيمة المطلقة",
+                "مقارنة العدد بالصفر لجمع الناتج"
+            ],
+            correctPurpose: 0,
+            explain: "العدد 4- أصغر من الصفر، فيتحقق شرط (لا) وتتم طباعة (عدد سالب)."
+        },
+        {
+            code: `1. البداية.<br>2. أدخل سعر السلعة الأصلي = 100.<br>3. قيمة الخصم = السعر × 0.10.<br>4. السعر النهائي = السعر الأصلي - قيمة الخصم.<br>5. اطبع السعر النهائي.<br>6. النهاية.`,
+            outputOptions: ["90", "10", "100", "110"],
+            correctOutput: 0,
+            purposeOptions: [
+                "حساب السعر النهائي للسلعة بعد تطبيق نسبة الخصم",
+                "حساب قيمة الخصم فقط دون طباعة السعر",
+                "زيادة سعر السلعة بنسبة 10%",
+                "تحديد السعر الأصلي للسلعة"
+            ],
+            correctPurpose: 0,
+            explain: "قيمة الخصم = 100 × 0.10 = 10. السعر النهائي = 100 - 10 = 90."
+        }
+    ];
+
+    let currentQ = 0;
+    let score = 0;
+    let selectedOutput = null;
+    let selectedPurpose = null;
+
+    function loadQuestion() {
+        selectedOutput = null;
+        selectedPurpose = null;
+
+        const q = quizData[currentQ];
+        document.getElementById("stepCounter").innerText = `المسألة ${currentQ + 1} من ${quizData.length}`;
+        document.getElementById("progressFill").style.width = `${((currentQ) / quizData.length) * 100}%`;
+        
+        document.getElementById("algoCode").innerHTML = q.code;
+
+        // تحميل خيارات الناتج النهائي
+        const outDiv = document.getElementById("outputOptionsContainer");
+        outDiv.innerHTML = "";
+        q.outputOptions.forEach((opt, idx) => {
+            outDiv.innerHTML += `
+                <label class="option-label">
+                    <input type="radio" name="outOpt" value="${idx}" onclick="selectedOutput = ${idx}">
+                    ${opt}
+                </label>
+            `;
+        });
+
+        // تحميل خيارات الوظيفة/الهدف
+        const purpDiv = document.getElementById("purposeOptionsContainer");
+        purpDiv.innerHTML = "";
+        q.purposeOptions.forEach((opt, idx) => {
+            purpDiv.innerHTML += `
+                <label class="option-label">
+                    <input type="radio" name="purpOpt" value="${idx}" onclick="selectedPurpose = ${idx}">
+                    ${opt}
+                </label>
+            `;
+        });
+
+        const fb = document.getElementById("feedback");
+        fb.style.display = "none";
+        fb.className = "feedback";
+        
+        const btn = document.getElementById("actionBtn");
+        btn.innerText = "تأكيد الإجابة";
+        btn.onclick = checkAnswer;
+    }
+
+    function checkAnswer() {
+        if (selectedOutput === null || selectedPurpose === null) {
+            alert("يرجى الإجابة عن كلا السؤالين (الناتج النهائي + وظيفة الخوارزمية) قبل التأكيد!");
+            return;
+        }
+
+        const q = quizData[currentQ];
+        const fb = document.getElementById("feedback");
+        fb.style.display = "block";
+
+        const isOutputCorrect = (selectedOutput === q.correctOutput);
+        const isPurposeCorrect = (selectedPurpose === q.correctPurpose);
+
+        if (isOutputCorrect && isPurposeCorrect) {
+            score++;
+            fb.className = "feedback correct";
+            fb.innerHTML = `✅ ممتاز إجابة كاملة وصحيحة! <br>${q.explain}`;
+        } else {
+            fb.className = "feedback incorrect";
+            let errText = "❌ الإجابة غير دقيقة:<br>";
+            if (!isOutputCorrect) errText += `• الناتج الصحيح هو: (${q.outputOptions[q.correctOutput]})<br>`;
+            if (!isPurposeCorrect) errText += `• الوظيفة الصحيحة هي: (${q.purposeOptions[q.correctPurpose]})<br>`;
+            errText += `<small>${q.explain}</small>`;
+            fb.innerHTML = errText;
+        }
+
+        const btn = document.getElementById("actionBtn");
+        if (currentQ < quizData.length - 1) {
+            btn.innerText = "المسألة التالية ➔";
+            btn.onclick = nextQuestion;
+        } else {
+            btn.innerText = "عرض النتيجة النهائية 🏆";
+            btn.onclick = showResults;
+        }
+    }
+
+    function nextQuestion() {
+        currentQ++;
+        loadQuestion();
+    }
+
+    function showResults() {
+        document.getElementById("quizContent").style.display = "none";
+        document.getElementById("resultScreen").style.display = "block";
+        document.getElementById("progressFill").style.width = "100%";
+        document.getElementById("stepCounter").innerText = "تم اكتمال التتبع";
+        document.getElementById("scoreText").innerText = `${score} / ${quizData.length}`;
+    }
+
+    function restartQuiz() {
+        currentQ = 0;
+        score = 0;
+        document.getElementById("quizContent").style.display = "block";
+        document.getElementById("resultScreen").style.display = "none";
+        loadQuestion();
+    }
+
+    loadQuestion();
+</script>
+
+</body>
+</html>
