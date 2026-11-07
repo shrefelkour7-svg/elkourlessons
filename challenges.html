@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>تحديات الحاسوب - مدرسة اليرموك</title>
+    <style>
+        body { font-family: Tahoma, sans-serif; background: #f4f7f6; direction: rtl; text-align: right; padding: 20px; }
+        .container { max-width: 700px; margin: auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .hidden { display: none; }
+        .alert-success { background: #d4edda; color: #155724; padding: 15px; border-radius: 5px; margin-top: 15px; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>منصة تحديات مادة الحاسوب - الصف التاسع</h2>
+    <hr>
+
+    <!-- الخطوة الأولى: اختيار الطالب والموضوع -->
+    <div id="stepLogin">
+        <label>اختر اسم الطالب:</label><br>
+        <select id="studentSelect" style="width: 100%; padding: 8px; margin: 10px 0;"></select><br><br>
+
+        <label>اختر موضوع التحدي:</label><br>
+        <select id="topicSelect" style="width: 100%; padding: 8px; margin: 10px 0;">
+            <option value="">-- اختر التحدي --</option>
+            <option value="خطوات حل المشكلة">خطوات حل المشكلة</option>
+            <option value="مفهوم الخوارزميات">مفهوم الخوارزميات</option>
+            <option value="كتابة خوارزمية">كتابة خوارزمية</option>
+            <option value="مفهوم المخططات">مفهوم المخططات</option>
+            <option value="رسم مخطط">رسم مخطط</option>
+        </select><br><br>
+
+        <button type="button" onclick="startQuiz()">بدء التحدي</button>
+    </div>
+
+    <!-- الخطوة الثانية: الأسئلة -->
+    <div id="stepQuiz" class="hidden">
+        <h3 id="quizTopicTitle"></h3>
+        <p style="text-align: center; color: #666;">يحتوي هذا التحدي على 10 أسئلة مختارة عشوائياً للمراجعة الشاملة (لكل سؤال 3 درجات - المجموع 30)</p>
+        <hr><br>
+
+        <form id="quizForm">
+            <div id="questionsContainer"></div>
+            <button type="button" onclick="submitQuiz()">تأكيد وإرسال النتيجة</button>
+        </form>
+    </div>
+
+    <!-- الخطوة الثالثة: النتيجة والتأكيد -->
+    <div id="stepResult" class="hidden">
+        <div class="alert-success">
+            <h3>تم إكمال التحدي بنجاح</h3>
+            <p id="resultText"></p>
+            <p>تم تسجيل نتيجتك سحابياً في سجلات مدرسة اليرموك.</p>
+            <br>
+            <button type="button" onclick="location.reload()">إجراء تحدي جديد</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const REPO_OWNER = 'shrefelkour7-svg';
+    const REPO_NAME = 'elkourlessons';
+    const STUDENTS_URL = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/students.csv`;
+    const RESULTS_API_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/results.csv`;
+    const GH_TOKEN = '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';
+
+    let studentsList = [];
+    let selectedStudent = '';
+    let selectedTopic = '';
+    let activeQuestions = [];
+
+    const quizData = {
+        "خطوات حل المشكلة": [
+            { q: "س: ما هي أول مرحلة أساسية ومبدئية في حل أي مسألة أو مشكلة حاسوبية؟", options: ["كتابة الأكواد", "تحديد وفهم المشكلة بدقة", "توثيق البرنامج", "اختبار البرنامج"], correct: 1 },
+            { q: "س: التعبير عن خطوات الحل بطريقة متسلسلة ومنطقية يسمى:", options: ["الخوارزمية", "الترجمة", "التخزين المؤقت", "التشغيل الفوري"], correct: 0 },
+            { q: "س: المرحلة التي تتضمن التأكد من خلو البرنامج تماماً من الأخطاء والحصول على نتائج صحيحة تسمى:", options: ["تحديد المشكلة", "كتابة الخوارزمية", "اختبار وصيانة البرنامج", "تجميع البيانات"], correct: 2 },
+            { q: "س: أي مما يلي يُعد مثالاً على خطوة 'تحديد المشكلة وفهمها'؟", options: ["معرفة المدخلات والمخرجات المطلوبة للمسألة", "كتابة برنامج بلغة بايثون", "طباعة النتائج على الورق", "شراء جهاز حاسوب جديد"], correct: 0 },
+            { q: "س: كتابة توجيهات وشرح مكتوب داخل البرنامج ليوضح كيفية عمله للمستخدمين الآخرين يسمى:", options: ["الخوارزمية", "توثيق البرنامج", "المعالجة", "المدخلات"], correct: 1 },
+            { q: "س: المخططات التعبيرية أو الرسمية التي توضح خطوات حل المشكلة بالرسوم الهندسية تسمى:", options: ["جداول البيانات", "المخططات الانسيابية", "اللوحات الإرشادية", "قواعد البيانات"], correct: 1 },
+            { q: "س: عند مواجهة خطأ في نتائج البرنامج أثناء مرحلة الاختبار، فإننا نعود إلى مرحلة:", options: ["بيع الجهاز", "تصحيح وتعديل الخوارزمية والخطوات", "إلغاء المادة", "إعادة تشغيل الشاشة"], correct: 1 },
+            { q: "س: أي من الخطوات التالية يأتي مباشرة بعد مرحلة 'فهم المشكلة وتحديد متطلباتها'؟", options: ["صياغة وتصميم الحل (كتابة الخوارزمية ورسم المخطط)", "بيع البرنامج", "صيانة اللوحة الأم", "إيقاف التشغيل"], correct: 0 },
+            { q: "س: هل تُعتبر صيانة البرنامج وتحديثه بشكل دوري جزءاً من مراحل حل المشكلة؟", options: ["نعم، وهي المرحلة الأخيرة", "لا، الحل ينتهي بمجرد كتابة الكود", "فقط في الأجهزة القديمة", "لا علاقة لها بحل المشاكل"], correct: 0 },
+            { q: "س: الهدف الرئيسي من تقسيم حل المشكلة إلى مراحل مرتبة ومنظمة هو:", options: ["إطالة وقت العمل", "تجنب الأخطاء وتسهيل اكتشافها وحلها", "تعقيد البرمجة على الطلاب", "تقليل سرعة الإنترنت"], correct: 1 }
+        ],
+        "مفهوم الخوارزميات": [
+            { q: "س: التعريف الأدق للخوارزمية في علم الحاسوب هو:", options: ["جهاز إلكتروني سريع", "مجموعة من التعليمات المنطقية المتسلسلة لحل مسألة", "لغة برمجة معقدة", "برنامج لحماية النظام"], correct: 1 },
+            { q: "س: يعود الفضل في إطلاق كلمة 'خوارزمية' إلى العالم المسلم العظيم:", options: ["الخوارزمي", "ابن الهيثم", "جابر بن حيان", "الكندي"], correct: 0 },
+            { q: "س: من أهم الشروط الأساسية التي يجب أن تتصف بها الخوارزمية الناجحة أن تكون:", options: ["عشوائية ومتغيرة", "واضحة ومحددة ومتناهية", "طويلة وغير منتهية", "صعبة الفهم"], correct: 1 },
+            { q: "س: ماذا نعني بكون الخوارزمية 'متناهية' (Finite)؟", options: ["أنها تتوقف وتنتهي بعد عدد محدد من الخطوات", "أنها تستمر في العمل للأبد", "أنها لا تحتوي على أرقام", "أنها سريعة التنفيذ"], correct: 0 },
+            { q: "س: الغرض الأساسي من كتابة الخوارزمية قبل البدء بكتابة البرنامج على الحاسوب هو:", options: ["استهلاك وقت أطول", "تخطيط وتصور خطوات الحل بوضوح", "زيادة مساحة التخزين", "تشغيل الألعاب"], correct: 1 },
+            { q: "س: هل يمكن تمثيل نفس المسألة بأكثر من خوارزمية مختلفة؟", options: ["نعم، يمكن الوصول لنفس النتيجة بطرق مختلفة", "لا، توجد خوارزمية واحدة فقط لكل مسألة", "ممنوع برمجياً", "فقط في لغة بايثون"], correct: 0 },
+            { q: "س: أي مما يلي لا يُعد من خصائص الخوارزمية الجيدة؟", options: ["تسلسل الخطوات", "الغموض وعدم التحديد", "وجود مدخلات ومخرجات واضحة", "الصواب والدقة"], correct: 1 },
+            { q: "س: في الخوارزميات، ماذا يُقصد بمفهوم 'المدخلات' (Inputs)؟", options: ["البيانات أو المعطيات التي يتم توفيرها للحل", "النتيجة النهائية للبرنامج", "شكل شاشة الحاسوب", "نوع الطابعة"], correct: 0 },
+            { q: "س: ترتيب خطوات الخوارزمية بطريقة خاطئة أو غير منطقية يؤدي إلى:", options: ["الحصول على نتائج خاطئة أو عدم الوصول للحل", "سرعة فائقة في التنفيذ", "توفير طاقة الجهاز", "نجاح البرنامج تلقائياً"], correct: 0 },
+            { q: "س: أي من المجالات التالية تعتمد بشكل أساسي على التفكير الخوارزمي؟", options: ["البرمجة وحل المشكلات الحاسوبية", "الرسم اليدوي الحر", "الاستماع للموسيقى", "الأنشطة الرياضية البدنية"], correct: 0 }
+        ],
+        "كتابة خوارزمية": [
+            { q: "س: عند كتابة خوارزمية لحساب مساحة المستطيل، فإن أول خطوة عملية يجب أن تبدأ بها هي:", options: ["طباعة المساحة", "إدخال أو قراءة قيمتي الطول والعرض", "إغلاق البرنامج", "ضرب الطول في العرض مباشرة بدون قراءة"], correct: 1 },
+            { q: "س: التعبير الشائع في بداية أي خوارزمية قياسية أو نهاية لها يكون باستخدام كلمتي:", options: ["تشغيل / إيقاف", "البداية / النهاية", "دخول / خروج", "حفظ / حذف"], correct: 1 },
+            { q: "س: في خوارزمية لجمع عددين (A و B) وحفظ الناتج في متغير باسم (Sum)، عبارة المعالجة تكتب بالشكل الصحيح:", options: ["Sum = A + B", "A + B = Sum", "طباعة (A, B)", "النهاية"], correct: 0 },
+            { q: "س: الخطوة التي تلي مرحلة 'إدخال البيانات' في الخوارزميات الحسابية البسيطة هي عادةً:", options: ["عملية المعالجة أو الحساب", "إنهاء البرنامج فوراً", "طباعة اسم المدرسة", "مسح الذاكرة"], correct: 0 },
+            { q: "س: لماذا نستخدم المتغيرات أثناء كتابة الخوارزميات؟", options: ["لتخزين القيم والبيانات وتغييرها حسب الحاجة", "لتزيين شكل الورقة", "لزيادة عدد الخطوات بلا فائدة", "لتعطيل عمل الحاسوب"], correct: 0 },
+            { q: "س: في خوارزمية للتحقق مما إذا كان الطالب ناجحاً أو راسباً، نستخدم تعبير شرطي يتضمن غالباً كلمة:", options: ["اكرر", "إذا (If)", "ارسم", "ابدأ"], correct: 1 },
+            { q: "س: الترتيب المنطقي الصحيح لخطوات خوارزمية حساب معدل طالب لثلاث مواد هو:", options: ["الطباعة ثم الإدخال ثم الجمع", "البداية، إدخال الدرجات، حساب المجموع والقسمة، طباعة المعدل، النهاية", "النهاية ثم البداية", "جمع الدرجات عشوائياً"], correct: 1 },
+            { q: "س: إذا كانت الخوارزمية تحتوي على تكرار تنفيذ عملية معينة عدة مرات، فإننا نطلق على هذه الخطوة برمجياً اسم:", options: ["التفرع أو الشرط", "التكرار (Loop / حلقة)", "الحذف النهائي", "التوثيق"], correct: 1 },
+            { q: "س: آخر خطوة تنفيذية تظهر قبل كلمة 'النهاية' في الخوارزميات الرياضية هي عادةً:", options: ["قراءة الأرقام", "طباعة أو إظهار النتيجة النهائية", "تغيير اسم الطالب", "إعادة تشغيل النظام"], correct: 1 },
+            { q: "س: عند كتابة خطوات الخوارزمية، هل يشترط الالتزام بترقيم الخطوات؟", options: ["نعم، لضمان وضوح التسلسل وترتيب التنفيذ", "لا، يمكن كتابتها بدون أي ترتيب", "يفضل كتابتها باللغات الأجنبية فقط", "الترقيم يسبب خطأ في البرمجة"], correct: 0 }
+        ],
+        "مفهوم المخططات": [
+            { q: "س: المخططات الانسيابية (Flowcharts) تُمثل:", options: ["رسماً تخطيطياً أو تعبيراً تصويرياً لخطوات الخوارزمية", "جدول بيانات إلكتروني", "برنامجاً لكتابة النصوص", "صورة شخصية"], correct: 0 },
+            { q: "س: من أهم فوائد استخدام المخططات الانسيابية في حل المسائل:", options: ["إبطاء سرعة المعالج", "تسهيل فهم البرنامج وتتبع أخطائه بوضوح", "زيادة حجم ملفات الحاسوب", "الاستغناء عن لغات البرمجة نهائياً"], correct: 1 },
+            { q: "س: تُستخدَم الخطوط والأسهم في المخططات الانسيابية للدلالة على:", options: ["اتجاه سير العمليات والاتصال بين الأشكال", "العمليات الحسابية فقط", "ألوان الشاشة", "حجم الذاكرة العشوائية"], correct: 0 },
+            { q: "س: هل تُعد المخططات الانسيابية لغة عالمية لفهم البرامج بغض النظر عن لغة البرمجة؟", options: ["نعم، لأنها تعتمد على أشكال هندسية متفق عليها عالمياً", "لا، تختلف من دولة لأخرى", "فقط في لغة سي بلس بلس", "لا علاقة لها بالعالمية"], correct: 0 },
+            { q: "س: أي مما يلي يُمثل شرطاً أساسياً عند رسم المخططات الانسيابية؟", options: ["أن يكون لها بداية ونهاية واضحتان", "أن تحتوي على ألوان كثيرة", "أن تُكتب باللغة الإنجليزية حصراً", "ألا تتجاوز ثلاثة أشكال هندسية"], correct: 0 },
+            { q: "س: في المخططات الانسيابية، الخطوط الواصلة بين الأشكال يجب أن تتحرك عادةً:", options: ["من الأعلى للأسفل أو من اليمين لليسار حسب الاتجاه", "بعشوائية تامة", "بشكل دائري مغلق", "من الأسفل للأعلى دائماً"], correct: 0 },
+            { q: "س: لماذا يُفضل المخطط الانسيابي على الخوارزمية النصية أحياناً في البرامج الكبيرة؟", options: ["لأنه يوضح الصورة الشاملة وسرعة تتبع تدفق البيانات بصرياً", "لأنه أرخص ثمناً", "لأنه يستهلك كهرباء أقل", "لأنه يمنع حدوث الأخطاء بنسبة 100%"], correct: 0 },
+            { q: "س: أي من الرموز يُعتبر صحيحاً لوصف المخطط الانسيابي بأنه 'مخطط منطقي مرئي'؟", options: ["لأنه يترجم الأفكار المجردة إلى أشكال هندسية واضحة", "لأنه مصمم للأجهزة فقط", "لأنه لا يحتاج إلى تفكير", "لأنه مكتوب بلغة الآلة"], correct: 0 },
+            { q: "س: هل تتطابق خطوات الخوارزمية النصية دائماً مع خطوات المخطط الانسيابي المصمم لها؟", options: ["نعم، المخطط هو ترجمة بصرية مباشرة للخوارزمية", "لا، فهما شيئان مختلفان تماماً", "المخطط يحتوي على أفكار أخرى غير موجودة", "الخوارزمية للمتوسطين والمخطط للمحترفين"], correct: 0 },
+            { q: "س: عند تصميم مخطط انسيابي لبرنامج، أي الأخطاء التالية يعتبر الأسهل اكتشافاً بفضل المخطط؟", options: ["الأخطاء المنطقية وتسلسل الخطوات", "تلف الشاشة", "انقطاع التيار الكهربائي", "عطل لوحة المفاتيح"], correct: 0 }
+        ],
+        "رسم مخطط": [
+            { q: "س: الشكل الهندسي المستخدم لتمثيل عمليتي 'البداية' و 'النهاية' في المخططات هو:", options: ["المستطيل", "الشكل البيضاوي (الكبسولة)", "المعين", "متوازي الأضلاع"], correct: 1 },
+            { q: "س: الشكل الهندسي المُخصص لعمليات الإدخال والإخراج هو:", options: ["متوازي الأضلاع", "المستطيل", "الدائرة", "المعين"], correct: 0 },
+            { q: "س: الشكل الهندسي المستخدم للتعبير عن العمليات الحسابية والمعالجة هو:", options: ["المستطيل", "المعين", "متوازي الأضلاع", "الشكل البيضاوي"], correct: 0 },
+            { q: "س: أي من الأشكال الهندسية التالية يُستخدم حصراً لعمليات المقارنة واتخاذ القرار (الشرط)؟", options: ["المعين", "المستطيل", "متوازي الأضلاع", "الخط المستقيم"], correct: 0 },
+            { q: "س: كم عدد التفريعات أو الأسهم الخارجة غالباً من شكل 'المعين' (اتخاذ القرار)؟", options: ["سهم واحد", "سهمان (عادة يمثلان نعم / لا)", "خمسة أسهم", "لا توجد أسهم خارجه منه"], correct: 1 },
+            { q: "س: إذا أردنا رسم مخطط انسيابي لطباعة عبارة، ما هو الشكل الهندسي المناسب لاحتواء هذه العملية؟", options: ["متوازي الأضلاع (لأنه عملية إخراج)", "المعين", "المستطيل", "الشكل البيضاوي فقط"], correct: 0 },
+            { q: "س: الرموز التي تُستخدم لربط الأشكال الهندسية ببعضها وتحديد مسار واتجاه تدفق البيانات هي:", options: ["الأسهم (Lines & Arrows)", "النقاط المتقطعة", "الدوائر السوداء", "الأقواس الهندسية"], correct: 0 },
+            { q: "س: في عملية حساب مجموع عددين داخل المخطط الانسيابي، ما هو الشكل الواجب إستخدامه؟", options: ["المستطيل", "متوازي الأضلاع", "المعين", "الشكل البيضاوي"], correct: 0 },
+            { q: "س: عند رسم مخطط انسيابي، هل يُسمح بتقاطع الأسهم واتجاهاتها بطريقة عشوائية ومعقدة؟", options: ["لا، يفضل تجنب التقاطعات ليبقى المخطط واضحاً وسهل القراءة", "نعم، التقاطعات ضرورية", "شرط أساسي في البرمجة", "لا يهم شكل الأسهم نهائياً"], correct: 0 },
+            { q: "س: أي من الأشكال التالية يوضع عادة في رأس المخطط الانسيابي وقاعه؟", options: ["الشكل البيضاوي للبداية والنهاية", "المعين", "متوازي الأضلاع", "المستطيل"], correct: 0 }
+        ]
+    };
+
+    window.onload = function() {
+        fetch(STUDENTS_URL + '?t=' + new Date().getTime())
+            .then(response => {
+                if (!response.ok) throw new Error('تعذر الوصول لملف الطلاب');
+                return response.arrayBuffer();
+            })
+            .then(buffer => {
+                const decoder = new TextDecoder('windows-1256');
+                const data = decoder.decode(buffer);
+                parseStudentsCSV(data);
+            })
+            .catch(err => {
+                console.error(err);
+                studentsList = ["محمد أحمد الفيتوري", "علي خالد المنفي", "عمر سالم العبيدي"];
+                populateStudentSelect();
+            });
+    };
+
+    function parseStudentsCSV(csvText) {
+        const lines = csvText.trim().split('\n');
+        studentsList = [];
+        lines.forEach(line => {
+            if (!line.trim()) return;
+            const columns = line.split(',');
+            const name = columns[0] ? columns[0].trim().replace(/["\r]/g, '') : '';
+            if (name) {
+                studentsList.push(name);
+            }
+        });
+        populateStudentSelect();
+    }
+
+    function populateStudentSelect() {
+        const select = document.getElementById('studentSelect');
+        select.innerHTML = '<option value="">-- اختر اسم الطالب --</option>';
+        studentsList.forEach(name => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = name;
+            select.appendChild(opt);
+        });
+    }
+
+    function getRandomQuestions(arr, count) {
+        const shuffled = [...arr].sort(() => 0.5 - Math.random());
+        return shuffled.slice(0, count);
+    }
+
+    function startQuiz() {
+        selectedStudent = document.getElementById('studentSelect').value;
+        selectedTopic = document.getElementById('topicSelect').value;
+
+        if (!selectedStudent || !selectedTopic) {
+            alert('الرجاء اختيار اسمك وموضوع التحدي أولاً!');
+            return;
+        }
+
+        const topicQuestions = quizData[selectedTopic] || quizData["خطوات حل المشكلة"];
+        activeQuestions = getRandomQuestions(topicQuestions, 10);
+
+        proceedToQuiz();
+    }
+
+    function proceedToQuiz() {
+        document.getElementById('stepLogin').classList.add('hidden');
+        document.getElementById('stepQuiz').classList.remove('hidden');
+        document.getElementById('quizTopicTitle').textContent = selectedTopic;
+
+        const container = document.getElementById('questionsContainer');
+        container.innerHTML = '';
+
+        activeQuestions.forEach((item, index) => {
+            let html = `<div style="margin-bottom: 20px; background: #fafafa; padding: 15px; border-radius: 5px;">`;
+            html += `<p><strong>${index + 1}. ${item.q}</strong></p>`;
+            item.options.forEach((opt, optIdx) => {
+                html += `<label><input type="radio" name="q${index}" value="${optIdx}"> ${opt}</label><br>`;
+            });
+            html += `</div>`;
+            container.innerHTML += html;
+        });
+    }
+
+    function submitQuiz() {
+        let score = 0;
+
+        for (let i = 0; i < activeQuestions.length; i++) {
+            const radios = document.getElementsByName(`q${i}`);
+            let answered = false;
+            for (const r of radios) {
+                if (r.checked) {
+                    answered = true;
+                    if (parseInt(r.value) === activeQuestions[i].correct) {
+                        score += 3;
+                    }
+                }
+            }
+            if (!answered) {
+                alert(`الرجاء الإجابة على السؤال رقم ${i + 1}`);
+                return;
+            }
+        }
+
+        const maxScore = activeQuestions.length * 3;
+        const freshResultsUrl = RESULTS_API_URL + '?t=' + new Date().getTime();
+
+        fetch(freshResultsUrl, {
+            headers: {
+                'Authorization': 'token ' + GH_TOKEN,
+                'Accept': 'application/vnd.github.v3+json'
+            }
+        })
+        .then(res => res.json())
+        .then(fileData => {
+            let existingCSV = '';
+            let fileSha = '';
+
+            // التحقق الذكي الآمن: جلب الـ SHA فقط إذا كان الملف موجوداً وغير فارغ
+            if (fileData && fileData.sha) {
+                fileSha = fileData.sha;
+            }
+
+            if (fileData && fileData.content) {
+                const binaryString = atob(fileData.content);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                const decoder = new TextDecoder('utf-8');
+                existingCSV = decoder.decode(bytes);
+            }
+
+            const dateStr = new Date().toISOString().split('T')[0];
+            const newRow = `${selectedStudent},${selectedTopic},${score}/${maxScore},نجاح,${dateStr}`;
+            const updatedCSV = existingCSV ? existingCSV.trim() + '\n' + newRow : newRow;
+
+            const utf8Encoder = new TextEncoder();
+            const utf8Bytes = utf8Encoder.encode(updatedCSV);
+            let binaryStringOut = '';
+            for (let i = 0; i < utf8Bytes.length; i++) {
+                binaryStringOut += String.fromCharCode(utf8Bytes[i]);
+            }
+            const encodedContent = btoa(binaryStringOut);
+
+            // بناء الطلب بمرونة تامة لتفادي أخطاء جيت هب عند تفريغ الملف
+            const requestBody = {
+                message: `Add result for ${selectedStudent} - ${selectedTopic}`,
+                content: encodedContent
+            };
+            if (fileSha) {
+                requestBody.sha = fileSha;
+            }
+
+            return fetch(RESULTS_API_URL, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': 'token ' + GH_TOKEN,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            });
+        })
+        .then(res => {
+            if (!res.ok) throw new Error('فشل التحديث في جيت هب');
+            return res.json();
+        })
+        .then(() => {
+            document.getElementById('stepQuiz').classList.add('hidden');
+            document.getElementById('stepResult').classList.remove('hidden');
+            document.getElementById('resultText').textContent = `الطالب: ${selectedStudent} | الموضوع: ${selectedTopic} | النتيجة: ${score} من ${maxScore}`;
+        })
+        .catch(err => {
+            console.error(err);
+            alert('حدث خطأ أثناء حفظ النتيجة: ' + err.message);
+        });
+    }
+</script>
+
+</body>
+</html>
